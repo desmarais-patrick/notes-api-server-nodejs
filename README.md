@@ -11,6 +11,8 @@ This API server works closely with the [database server](/desmarais-patrick/note
 
 See also mother [notes](/desmarais-patrick/notes) repo for global information about the project.
 
+<!-- TODO Overview of project structure. -->
+
 ## Running on Google Cloud
 
 To run this server using a standard App Engine on Google Cloud,
