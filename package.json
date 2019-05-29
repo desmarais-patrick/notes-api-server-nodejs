@@ -1,0 +1,20 @@
+{
+  "name": "notes-api-server-nodejs",
+  "version": "0.0.1",
+  "description": "API server for the Notes project",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/desmarais-patrick/notes-api-server-nodejs.git"
+  },
+  "author": "Patrick Desmarais <patrick.desm@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/desmarais-patrick/notes-api-server-nodejs/issues"
+  },
+  "homepage": "https://github.com/desmarais-patrick/notes-api-server-nodejs#readme"
+}
