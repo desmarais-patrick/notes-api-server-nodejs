@@ -7,7 +7,7 @@ The following sections have been divided into:
  - [Running locally](#running-locally)
  - [Running tests](#running-tests)
 
-This API server works closely with the [database server](/desmarais-patrick/notes-db-server-datastore) project using Datastore.
+This API server works closely with the [database server](/desmarais-patrick/notes-db-server-datastore) project using Google Cloud Datastore.
 
 See also mother [notes](/desmarais-patrick/notes) repo for global information about the project.
 
@@ -78,19 +78,34 @@ To run this server locally, you will need the following pre-requisites:
 
 ### Steps
 
+<!--
 Install dependencies:
 
 ```
 npm install
 ```
+-->
 
-Run API server:
+This project has no package dependencies yet. 🤷‍
+
+Run API server using:
 
 ```
 npm start
 ```
 
+Visit `http://localhost:8080/` to start using the API.
+
+> Note if the `PORT` environment variable is set on your system, replace `8080` by its value to start using the API.
+
+No documentation has been generated for this API yet. 😕
+
+
 ## Running tests
+
+No tests have been implemented yet. 😕
+
+<!--
 
 Install dependencies:
 
@@ -117,6 +132,7 @@ Run integration tests:
 ```
 npm run integration-tests
 ```
+-->
 
 <!-- TODO Environment considerations, ex. run tests on dev, demo, prod. -->
 <!-- TODO Describe what I mean by automated tests, level of details into writing tests. -->
