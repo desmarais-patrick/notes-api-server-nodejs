@@ -1,6 +1,6 @@
 {
   "name": "notes-api-server-nodejs",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "API server for the Notes project",
   "main": "index.js",
   "scripts": {
@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/desmarais-patrick/notes-api-server-nodejs/issues"
   },
-  "homepage": "https://github.com/desmarais-patrick/notes-api-server-nodejs#readme"
+  "homepage": "https://github.com/desmarais-patrick/notes-api-server-nodejs#readme",
+  "dependencies": {
+    "@google-cloud/datastore": "^4.0.0"
+  }
 }

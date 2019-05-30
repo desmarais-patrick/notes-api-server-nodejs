@@ -16,5 +16,5 @@ class Server {
 }
 
 module.exports = {
-    Server: Server
+    Server
 };

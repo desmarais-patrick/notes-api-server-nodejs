@@ -1,45 +1,41 @@
 const {BaseController} = require("./baseController");
 
 class NotesController extends BaseController {
-    constructor() {
-        super();
+    constructor(options) {
+        super(options);
+
+        this.ContextualErrorClass = options.ContextualErrorClass;
+
+        this.databaseDriver = options.databaseDriver;
     }
 
     create(requestBody, callback) {
         callback(new Error("notesController.create [Not yet implemented]"));
     }
 
-    list(httpResponse) {
-        const data = {
-            type: "Collection",
-            items: [
-                {
-                    type: "Note",
-                    id: 1,
-                    text: "TED talk, Shawn Achor, Happiness",
-                    date: "2019-03-02T22:03:12.1234Z"
-                },
-                {
-                    type: "Note",
-                    id: 2,
-                    text: "Movies\n\nIron Man I\nCaptain America I\nCaptain Marvel\nAvengers: Endgame\n",
-                    date: "2019-03-02T21:34:45.1234Z"
-                },
-                {
-                    type: "Note",
-                    id: 3,
-                    text: "Move On, A Real Good Kid, Mike Posner",
-                    date: "2019-03-01T09:32:12.1234Z"
-                }
-            ],
-            total: 3,
-            limit: 10,
-            offset: 0,
-            next: null,
-            previous: null
-        };
+    list(httpResponse, callback) {
+        this.databaseDriver.getNotes((err, notes) => {
+            if (err) {
+                const contextError = new this.ContextualErrorClass(
+                    null,
+                    "NotesController failed to retrieve notes",
+                    err
+                );
+                callback(contextError);
+                return;
+            }
 
-        this.sendJson(200, data, httpResponse);
+            const data = {
+                type: "Collection",
+                items: notes,
+                total: notes.length,
+                limit: 10,
+                offset: 0,
+                next: null,
+                previous: null
+            };
+            this.sendJson(200, data, httpResponse);
+        });
     }
 
     get(id, callback) {
@@ -56,5 +52,5 @@ class NotesController extends BaseController {
 }
 
 module.exports = {
-    NotesController: NotesController
+    NotesController
 };

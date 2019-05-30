@@ -93,15 +93,11 @@ To run this server locally, you will need the following pre-requisites:
 
 ### Steps
 
-<!--
-Install dependencies:
+Install NPM dependencies:
 
 ```
 npm install
 ```
--->
-
-This project has no package dependencies yet. 🤷‍
 
 Run API server using:
 
@@ -112,6 +108,8 @@ npm start
 Visit `http://localhost:8080/` to start using the API.
 
 > Note if the `PORT` environment variable is set on your system, replace `8080` by its value to start using the API.
+
+> Also note that running the app locally, with the Google Cloud login and project setup, accesses your project's database. 😉
 
 No documentation has been generated for this API yet. 😕
 

@@ -1,23 +1,27 @@
-const url = require("url");
-const {ContextualError, ERROR_TYPES} = require("./utilities/contextualError");
-
 class Router {
     constructor(options) {
+        this.urlModule = options.urlModule;
+
         this.errorController = options.errorController;
         this.notesController = options.notesController;
     }
 
     route(incomingMessage, httpResponse) {
-        const messageUrl = url.parse(incomingMessage.url);
+        const url = this.urlModule.parse(incomingMessage.url);
 
-        if (messageUrl.pathname === "/") {
-            this.notesController.list(httpResponse);
+        console.log("Request for: ", url.pathname);
+        if (url.pathname === "/") {
+            this.notesController.list(httpResponse, function (err) {
+                if (err) {
+                    this.errorController.generalError(err.toString(), httpResponse);
+                }
+            });
         } else {
-            this.errorController.notFound(messageUrl.pathname, httpResponse);
+            this.errorController.notFound(url.pathname, httpResponse);
         }
     }
 }
 
 module.exports = {
-    Router: Router
+    Router
 };

@@ -7,25 +7,25 @@ class ErrorController extends BaseController {
     }
 
     badRequest(details, httpResponse) {
-        const message = {
+        const error = {
             type: "Error",
             code: 400,
-            message: `Bad request, details: (${details}).`
+            message: `Bad request: ${details}`
         };
 
-        this.sendJson(400, message, httpResponse);
+        this.sendJson(400, error, httpResponse);
     }
 
-    generalError(errorType, errorDetails, httpResponse) {
+    generalError(details, httpResponse) {
         let message = "General error";
         if (this.environment === "development") {
-            message += ` [${errorType}]: ${errorDetails}`;
+            message += errorDetails;
         }
 
         const error = {
             type: "Error",
             code: 500,
-            message: message
+            message
         };
 
         this.sendJson(500, error, httpResponse);
@@ -43,5 +43,5 @@ class ErrorController extends BaseController {
 }
 
 module.exports = {
-    ErrorController: ErrorController
+    ErrorController
 };
