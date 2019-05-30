@@ -1,13 +1,9 @@
 class ContextualError {
-    type = "";
-    message = "";
-    context = null;
-    stack = null;
-
     constructor(type, message, nativeOrParentError) {
         this.type = type;
         this.message = message;
         this.context = nativeOrParentError;
+        this.stack = null;
     }
 
     toString() {
