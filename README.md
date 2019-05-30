@@ -19,13 +19,13 @@ To run this server using a standard App Engine on Google Cloud,
 you will need the following pre-requisites:
 
  - Google Cloud account with billing enabled
- - Google Cloud project ID
- - Google Cloud App Engine app created
+ - Google Cloud `PROJECT_ID`
+ - Google Cloud App Engine app (Node.js, standard) created
  - Database server setup (see [notes-db-server-datastore](/desmarais-patrick/notes-db-server-datastore) repo)
 
 Optionally, you may install *Node.js* and *Google Cloud SDK* locally to run commands otherwise run using *Google Cloud Shell*.
 
-### Steps
+### Steps to deploy
 
 First, open the *Google Cloud Shell* from the *Google Cloud Console* shell icon.
 
@@ -45,21 +45,36 @@ git clone https://github.com/desmarais-patrick/notes-api-server-nodejs.git
 Deploy the application:
 
 ```
-gcloud app deploy
+gcloud app deploy --version <VERSION>
 ```
+
+The `<VERSION>` may be specified as `0-0-1` for version 0.0.1.
+
+After a few minutes, you should then be able to visit your project's URL (generally of the form `https://<PROJECT_ID>.appspot.com`) to see the API.
+
+If you wish to deploy a version without making it active to receive traffic, say for testing deployment or modifications, you may use the flag `--no-promote`.
 
 <!-- TODO Versioning considerations. -->
 <!-- TODO Configuration considerations, ex. Datastore, demo environment. -->
 <!-- TODO Describe demo version with rate limiting (1000 requests or 100KB per hour) + reset every hour. -->
-<!-- TODO Clean-up considerations, ex. remove older versions, remove altogether. -->
 
-If you want to deploy using the *Google Cloud SDK* on your machine, a useful command to login to GCP services is:
+---
+
+Optionally, if you want to deploy using the *Google Cloud SDK* on your machine, a useful command to login to GCP services is:
 
 ```
 gcloud auth application-default login
 ```
 
 The above commands work too.
+
+### Steps to clean up
+
+If you wish to remove older versions, you may visit the App Engine dashboard section in the *Google Cloud Console*.
+
+If you wish to clean things completely, you may delete the Google Cloud project itself. 😉
+
+[Back to top ↑](#)
 
 ## Running locally
 
@@ -100,6 +115,7 @@ Visit `http://localhost:8080/` to start using the API.
 
 No documentation has been generated for this API yet. 😕
 
+[Back to top ↑](#)
 
 ## Running tests
 
@@ -136,3 +152,5 @@ npm run integration-tests
 
 <!-- TODO Environment considerations, ex. run tests on dev, demo, prod. -->
 <!-- TODO Describe what I mean by automated tests, level of details into writing tests. -->
+
+[Back to top ↑](#)
