@@ -54,8 +54,10 @@ After a few minutes, you should then be able to visit your project's URL (genera
 
 If you wish to deploy a version without making it active to receive traffic, say for testing deployment or modifications, you may use the flag `--no-promote`.
 
-<!-- TODO Versioning considerations. -->
-<!-- TODO Configuration considerations, ex. Datastore, demo environment. -->
+### Environment considerations
+
+If you plan on creating different environments, for example *development* and *demo* and *prod*, the easiest way to manage those environments with the Google Cloud Datastore seems to create different projects.
+
 <!-- TODO Describe demo version with rate limiting (1000 requests or 100KB per hour) + reset every hour. -->
 
 ---
