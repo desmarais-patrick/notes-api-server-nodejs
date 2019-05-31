@@ -154,6 +154,7 @@ No API documentation has been generated yet. 😕
 
 <!-- TODO Create scripts to switch between local and remote datastores. -->
 <!-- TODO Create scripts to switch between environments (projects). -->
+<!-- TODO Add script to pull sample data using export storage bucket. -->
 
 Google Cloud offers a *Datastore emulator* [[1](#references)].
 To run this emulator locally...
