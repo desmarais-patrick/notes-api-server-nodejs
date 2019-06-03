@@ -1,4 +1,4 @@
-const {BaseController} = require("./baseController");
+const BaseController = require("./baseController");
 
 class NotesController extends BaseController {
     constructor(options) {
@@ -51,6 +51,4 @@ class NotesController extends BaseController {
     }
 }
 
-module.exports = {
-    NotesController
-};
+module.exports = NotesController;

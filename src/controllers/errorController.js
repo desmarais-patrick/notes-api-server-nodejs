@@ -1,4 +1,4 @@
-const {BaseController} = require("./baseController");
+const BaseController = require("./baseController");
 
 class ErrorController extends BaseController {
     constructor(options) {
@@ -42,6 +42,4 @@ class ErrorController extends BaseController {
     }
 }
 
-module.exports = {
-    ErrorController
-};
+module.exports = ErrorController;

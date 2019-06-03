@@ -28,6 +28,4 @@ ContextualError.ERROR_TYPES = {
     notImplementedYet: "NOT_IMPLEMENTED_YET"
 };
 
-module.exports = {
-    ContextualError
-};
+module.exports = ContextualError;

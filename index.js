@@ -3,18 +3,20 @@
 // Node module dependencies.
 const http = require("http");
 const url = require("url");
+const {Datastore} = require("@google-cloud/datastore");
 
 // Application module dependencies.
-const {ContextualError} = require("./src/utilities/contextualError");
+const ErrorController = require("./src/controllers/errorController");
+const NotesController = require("./src/controllers/notesController");
 
-const {Datastore} = require("@google-cloud/datastore");
-const {DatastoreDatabaseDriver} = require("./src/datastoreDatabaseDriver");
+const ListRequest = require("./src/models/listRequest");
 
-const {ErrorController} = require("./src/controllers/errorController");
-const {NotesController} = require("./src/controllers/notesController");
+const ContextualError = require("./src/utilities/contextualError");
 
-const {Router} = require("./src/router");
-const {Server} = require("./src/server");
+const DatastoreDatabaseDriver = require("./src/datastoreDatabaseDriver");
+
+const Router = require("./src/router");
+const Server = require("./src/server");
 
 // Variables.
 const port = process.env.PORT || 8080;
@@ -30,6 +32,7 @@ const errorController = new ErrorController({environment});
 const notesController = new NotesController({ContextualError,databaseDriver});
 const router = new Router({
     urlModule: url,
+    listRequestClass: ListRequest,
     errorController,
     notesController
 });

@@ -56,6 +56,4 @@ class DatastoreDatabaseDriver {
     }
 }
 
-module.exports = {
-    DatastoreDatabaseDriver
-};
+module.exports = DatastoreDatabaseDriver;
