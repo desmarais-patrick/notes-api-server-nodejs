@@ -1,4 +1,10 @@
 class Router {
+    /**
+     * @param {object} options 
+     * @param {url} options.urlModule
+     * @param {ErrorController} options.errorController
+     * @param {NotesController} options.notesController
+     */
     constructor(options) {
         this.urlModule = options.urlModule;
 
@@ -6,18 +12,25 @@ class Router {
         this.notesController = options.notesController;
     }
 
-    route(incomingMessage, httpResponse) {
-        const url = this.urlModule.parse(incomingMessage.url);
+    /**
+     * Routes server requests to corresponding controllers before 
+     * sending back the server response.
+     * 
+     * @param {http.IncomingMessage} req 
+     * @param {http.ServerResponse} res 
+     */
+    route(req, res) {
+        const url = this.urlModule.parse(req.url);
 
         console.log("Request for: ", url.pathname);
         if (url.pathname === "/") {
-            this.notesController.list(httpResponse, function (err) {
+            this.notesController.list(res, function (err) {
                 if (err) {
-                    this.errorController.generalError(err.toString(), httpResponse);
+                    this.errorController.generalError(err.toString(), res);
                 }
             });
         } else {
-            this.errorController.notFound(url.pathname, httpResponse);
+            this.errorController.notFound(url.pathname, res);
         }
     }
 }
