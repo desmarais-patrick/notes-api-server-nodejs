@@ -9,6 +9,9 @@ class StatusController {
         this.environment = options.environment;
     }
 
+    /**
+     * @param {StatusController~responseCallback} callback 
+     */
     getServerStatus(callback) {
         const response = new this.SuccessResponse()
             .setType("Status")
@@ -18,6 +21,11 @@ class StatusController {
             callback(response);
         });
     }
+
+    /**
+     * @callback StatusController~responseCallback
+     * @param {SuccessResponse} response
+     */
 }
 
 module.exports = StatusController;
