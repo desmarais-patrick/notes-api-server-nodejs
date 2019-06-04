@@ -8,6 +8,7 @@ const {Datastore} = require("@google-cloud/datastore");
 // Application module dependencies.
 const ErrorController = require("./src/controllers/errorController");
 const NotesController = require("./src/controllers/notesController");
+const StatusController = require("./src/controllers/statusController");
 
 const ListRequest = require("./src/models/listRequest");
 const ErrorResponse = require("./src/models/errorResponse");
@@ -40,11 +41,15 @@ const notesController = new NotesController({
     environment,
     databaseDriver
 });
+const statusController = new StatusController({
+    SuccessResponse
+});
 const router = new Router({
     URL,
     ListRequest,
     errorController,
-    notesController
+    notesController,
+    statusController
 });
 
 // Server is ready to start.

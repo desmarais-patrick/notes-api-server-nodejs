@@ -5,6 +5,7 @@ class Router {
      * @param {function} options.ListRequest
      * @param {ErrorController} options.errorController
      * @param {NotesController} options.notesController
+     * @param {StatusController} options.statusController
      */
     constructor(options) {
         this.URL = options.URL;
@@ -13,6 +14,7 @@ class Router {
 
         this.errorController = options.errorController;
         this.notesController = options.notesController;
+        this.statusController = options.statusController;
     }
 
     /**
@@ -29,6 +31,9 @@ class Router {
         switch(urlPath) {
             case "/":
                 this._getNotesList(incomingMessage, serverResponse);
+                break;
+            case "/status":
+                this._getServerStatus(incomingMessage, serverResponse);
                 break;
             default:
                 this._sendNotFound(incomingMessage, serverResponse);
@@ -50,6 +55,11 @@ class Router {
         const url = this.URL.parse(incomingMessage.url, true);
         const value = url.query[parameterName];
         return value || defaultValue;
+    }
+
+    _getServerStatus(incomingMessage, serverResponse) {
+        this.statusController.getServerStatus(
+            (response) => this._sendJson(serverResponse, response));
     }
 
     _sendNotFound(incomingMessage, serverResponse) {
