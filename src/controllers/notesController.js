@@ -5,7 +5,7 @@ class NotesController {
      * @param {function} options.ContextualError
      * @param {function} options.ErrorResponse
      * @param {function} options.SuccessResponse
-     * @param {string} options.environment
+     * @param {Environment} options.environment
      * @param {DatastoreDatabaseDriver} options.databaseDriver
      */
     constructor(options) {
@@ -33,7 +33,7 @@ class NotesController {
                     const contextError = new this.ContextualError(
                         "NotesController failed to retrieve notes", err);
                     let message = "General error";
-                    if (this.environment === "development") {
+                    if (this.environment.isDev()) {
                         message = message + ": " + contextError.toString();
                     }
                     const response = new this.ErrorResponse()

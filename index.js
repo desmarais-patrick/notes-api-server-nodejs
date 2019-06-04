@@ -10,6 +10,7 @@ const ErrorController = require("./src/controllers/errorController");
 const NotesController = require("./src/controllers/notesController");
 const StatusController = require("./src/controllers/statusController");
 
+const Environment = require("./src/models/Environment");
 const ListRequest = require("./src/models/listRequest");
 const ErrorResponse = require("./src/models/errorResponse");
 const SuccessResponse = require("./src/models/successResponse");
@@ -23,7 +24,7 @@ const Server = require("./src/server");
 
 // Variables.
 const port = process.env.PORT || 8080;
-const environment = process.env.NODE_ENV || "development";
+const environment = new Environment({NODE_ENV: process.env.NODE_ENV});
 
 // Initialization.
 const databaseDriver = new DatastoreDatabaseDriver({
@@ -42,7 +43,8 @@ const notesController = new NotesController({
     databaseDriver
 });
 const statusController = new StatusController({
-    SuccessResponse
+    SuccessResponse,
+    environment
 });
 const router = new Router({
     URL,
