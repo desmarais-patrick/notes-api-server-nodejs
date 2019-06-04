@@ -1,45 +1,43 @@
-const BaseController = require("./baseController");
-
-class ErrorController extends BaseController {
+class ErrorController {
+    /**
+     * @param {object} options
+     * @param {function} options.ErrorResponse
+     */
     constructor(options) {
-        super(options);
-        this.environment = options.environment;
+        this.ErrorResponse = options.ErrorResponse;
     }
 
-    badRequest(details, httpResponse) {
-        const error = {
-            type: "Error",
-            code: 400,
-            message: `Bad request: ${details}`
-        };
-
-        this.sendJson(400, error, httpResponse);
+    /**
+     * 
+     * @param {string} whatsWrongWithRequest Explanation why request is malformed.
+     * @param {ErrorController~responseCallback} callback
+     */
+    badRequest(whatsWrongWithRequest, callback) {
+        const response = new this.ErrorResponse()
+            .setStatusCode(400)
+            .setMessage(`Bad request: ${whatsWrongWithRequest}`);
+        setImmediate(() => {
+            callback(response);
+        });
     }
 
-    generalError(details, httpResponse) {
-        let message = "General error";
-        if (this.environment === "development") {
-            message += errorDetails;
-        }
-
-        const error = {
-            type: "Error",
-            code: 500,
-            message
-        };
-
-        this.sendJson(500, error, httpResponse);
+    /**
+     * @param {string} requestedResourcePath
+     * @param {ErrorController~responseCallback} callback
+     */
+    notFound(requestedResourcePath, callback) {
+        const response = new this.ErrorResponse()
+            .setStatusCode(404)
+            .setMessage(`Resource ${requestedResourcePath} not found.`);
+        setImmediate(() => {
+            callback(response);
+        });
     }
 
-    notFound(invalidPathName, httpResponse) {
-        const message = {
-            type: "Error",
-            code: 404,
-            message: `Resource ${invalidPathName} not found.`
-        };
-
-        this.sendJson(404, message, httpResponse);
-    }
+    /**
+     * @callback ErrorController~responseCallback
+     * @param {ErrorResponse} response
+     */
 }
 
 module.exports = ErrorController;

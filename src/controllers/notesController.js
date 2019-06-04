@@ -1,11 +1,19 @@
-const BaseController = require("./baseController");
-
-class NotesController extends BaseController {
+class NotesController {
+    /**
+     * 
+     * @param {object} options 
+     * @param {function} options.ContextualError
+     * @param {function} options.ErrorResponse
+     * @param {function} options.SuccessResponse
+     * @param {string} options.environment
+     * @param {DatastoreDatabaseDriver} options.databaseDriver
+     */
     constructor(options) {
-        super(options);
+        this.ContextualError = options.ContextualError;
+        this.ErrorResponse = options.ErrorResponse;
+        this.SuccessResponse = options.SuccessResponse;
 
-        this.ContextualErrorClass = options.ContextualErrorClass;
-
+        this.environment = options.environment;
         this.databaseDriver = options.databaseDriver;
     }
 
@@ -13,29 +21,38 @@ class NotesController extends BaseController {
         callback(new Error("notesController.create [Not yet implemented]"));
     }
 
-    list(httpResponse, callback) {
-        this.databaseDriver.getNotes((err, notes) => {
-            if (err) {
-                const contextError = new this.ContextualErrorClass(
-                    null,
-                    "NotesController failed to retrieve notes",
-                    err
-                );
-                callback(contextError);
-                return;
-            }
+    /**
+     * 
+     * @param {ListRequest} listRequest 
+     * @param {NotesController~responseCallback} callback 
+     */
+    list(listRequest, callback) {
+        this.databaseDriver.getNotes(listRequest,
+            (err, notes) => {
+                if (err) {
+                    const contextError = new this.ContextualError(
+                        "NotesController failed to retrieve notes", err);
+                    let message = "General error";
+                    if (this.environment === "development") {
+                        message = message + ": " + contextError.toString();
+                    }
+                    const response = new this.ErrorResponse()
+                        .setStatusCode(500)
+                        .setMessage(message);
+                    callback(response);
+                    return;
+                }
 
-            const data = {
-                type: "Collection",
-                items: notes,
-                total: notes.length,
-                limit: 10,
-                offset: 0,
-                next: null,
-                previous: null
-            };
-            this.sendJson(200, data, httpResponse);
-        });
+                // TODO Translate `notes` from a Model to JSON response 
+                //      defined here.
+                const response = new this.SuccessResponse()
+                    .setType("Collection")
+                    .setProperty("limit", listRequest.limit)
+                    .setProperty("offset", listRequest.offset)
+                    .setProperty("items", notes);
+                callback(response);
+            }
+        );
     }
 
     get(id, callback) {
@@ -49,6 +66,11 @@ class NotesController extends BaseController {
     delete(id, callback) {
         callback(new Error("notesController.delete [Not yet implemented]"));
     }
+
+    /**
+     * @callback NotesController~responseCallback
+     * @param {SuccessResponse|ErrorResponse} response
+     */
 }
 
 module.exports = NotesController;

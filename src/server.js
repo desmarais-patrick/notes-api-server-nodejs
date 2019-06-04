@@ -1,7 +1,7 @@
 class Server {
     /**
      * @param {object} options
-     * @param {http} options.httpModule
+     * @param {http} options.HTTP
      * @param {number} options.port
      * @param {Router} options.router
      */
@@ -9,7 +9,7 @@ class Server {
         this.port = options.port;
         this.router = options.router;
 
-        this.httpServer = options.httpModule.createServer(
+        this.httpServer = options.HTTP.createServer(
             (incomingMessage, serverResponse) => {
                 this.router.route(incomingMessage, serverResponse);
             }
@@ -31,7 +31,7 @@ class Server {
      * @param {Server~startCallback} listeningCallback 
      */
     start(listeningCallback) {
-        this.httpServer.listen(this.port, callback);
+        this.httpServer.listen(this.port, listeningCallback);
     }
     /**
      * @callback Server~listeningCallback

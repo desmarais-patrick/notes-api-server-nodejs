@@ -1,15 +1,15 @@
 class Router {
     /**
      * @param {object} options 
-     * @param {url} options.urlModule
-     * @param {function} options.listRequestClass
+     * @param {url} options.URL Node.js `url` module
+     * @param {function} options.ListRequest
      * @param {ErrorController} options.errorController
      * @param {NotesController} options.notesController
      */
     constructor(options) {
-        this.urlModule = options.urlModule;
+        this.URL = options.URL;
 
-        this.listRequestClass = options.listRequestClass;
+        this.ListRequest = options.ListRequest;
 
         this.errorController = options.errorController;
         this.notesController = options.notesController;
@@ -19,8 +19,10 @@ class Router {
      * Routes server requests to corresponding controllers before 
      * sending back the server response.
      * 
-     * @param {http.IncomingMessage} incomingMessage 
-     * @param {http.ServerResponse} serverResponse 
+     * @param {http.IncomingMessage} incomingMessage Readable stream for 
+     * request events.
+     * @param {http.ServerResponse} serverResponse Writable stream for 
+     * request events.
      */
     route(incomingMessage, serverResponse) {
         const urlPath = this._parseUrlPath(incomingMessage);
@@ -37,42 +39,38 @@ class Router {
     _getNotesList(incomingMessage, serverResponse) {
         const offset = this._parseQueryParameter(incomingMessage, "offset", 0);
         const limit = this._parseQueryParameter(incomingMessage, "limit", 10);
-        const request = new this.listRequestClass()
+        const request = new this.ListRequest()
             .setOffset(offset)
             .setLimit(limit);
-        this.notesController.list(request, serverResponse);
+        this.notesController.list(request, 
+            (response) => this._sendJson(serverResponse, response));
     }
 
     _parseQueryParameter(incomingMessage, parameterName, defaultValue) {
-        const url = this.urlModule.parse(incomingMessage.url);
-        const value = url.searchParams.get(parameterName);
+        const url = this.URL.parse(incomingMessage.url, true);
+        const value = url.query[parameterName];
         return value || defaultValue;
     }
 
     _sendNotFound(incomingMessage, serverResponse) {
         const pathToRequestResource = this._parseUrlPath(incomingMessage);
-        const message = `Resource '${pathToRequestResource}' not found.`;
-        return new ErrorResponse()
-            .setStatusCode(404)
-            .setMessage(message)
-            .send(serverResponse);
+        this.errorController.notFound(pathToRequestResource, 
+            (response) => this._sendJson(serverResponse, response));
     }
 
     _parseUrlPath(incomingMessage) {
-        const url = this.urlModule.parse(incomingMessage.url);
+        const url = this.URL.parse(incomingMessage.url);
         return url.pathname;
     }
 
     _sendJson(serverResponse, response) {
-        serverResponse.statusCode = response.getStatusCode();
+        serverResponse.statusCode = response.statusCode;
         serverResponse.setHeader("Content-Type", "application/json");
 
-        const stringData = JSON.stringify(response.getJsonData());
+        const stringData = response.toString();
         serverResponse.setHeader("Content-Length", 
             Buffer.byteLength(stringData));
-        serverResponse.write(stringData, ENCODING);
-
-        serverResponse.end();
+        serverResponse.end(stringData);
     }
 }
 

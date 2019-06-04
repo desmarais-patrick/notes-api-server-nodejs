@@ -1,9 +1,17 @@
-const BaseResponse = require("./baseResponse");
-
-class ErrorResponse extends BaseResponse {
+class ErrorResponse {
     constructor() {
-        super();
-        this.message = "";
+        this.statusCode = null;
+        this.message = null;
+    }
+
+    /**
+     * 
+     * @param {number} statusCode 
+     * @returns {ErrorResponse} For chaining.
+     */
+    setStatusCode(statusCode) {
+        this.statusCode = statusCode;
+        return this;
     }
 
     /**
@@ -16,12 +24,17 @@ class ErrorResponse extends BaseResponse {
         return this;
     }
 
-    _formatJson() {
-        return {
+    /**
+     * @returns {string} Formatted response for sending over the wire.
+     */
+    toString() {
+        const json = {
             type: "Error",
             code: this.statusCode,
             message: this.message
-        }
+        };
+
+        return JSON.stringify(json);
     }
 }
 

@@ -1,16 +1,14 @@
-const BaseResponse = require("./baseResponse");
-
-class SuccessResponse extends BaseResponse {
+class SuccessResponse {
     constructor() {
-        super();
-        this.setStatusCode(200);
+        this.statusCode = 200;
+        this.type = null;
         this.data = {};
     }
 
     /**
      * 
      * @param {string} type 
-     * @returns {BaseResponse} For chaining.
+     * @returns {SuccessResponse} For chaining.
      */
     setType(type) {
         this.type = type;
@@ -28,7 +26,10 @@ class SuccessResponse extends BaseResponse {
         return this;
     }
 
-    _formatJson() {
+    /**
+     * @returns {string} Formatted response for sending over the wire.
+     */
+    toString() {
         const json = {
             type: this.type,
         };
@@ -37,7 +38,7 @@ class SuccessResponse extends BaseResponse {
             json[key] = this.data[key];
         }
 
-        return json;
+        return JSON.stringify(json);
     }
 }
 
