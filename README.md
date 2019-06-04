@@ -140,7 +140,12 @@ npm start
 
 Visit `http://localhost:8080/` to start using the API.
 
-> Note if the `PORT` environment variable is set on your system, replace `8080` by its value to start using the API.
+> Note if the `PORT` environment variable is set on your system, replace `8080` by your system value to start using the API.
+
+> Note the `NODE_ENV` environment variable sets server in different modes: `development`, `demonstration`, `production`.
+> The `development` mode is used to return more status information and details when an error occurs.
+> The `demonstration` mode is used to put measures regarding requests and storage to avoid abuse.
+> The `production` mode is used to run as fast as possible, with less details and overhead.
 
 > Note that running the app locally, with the Google Cloud login and project setup, accesses your project's remote database in the cloud. 😉
 
