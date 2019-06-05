@@ -2,20 +2,45 @@ class ErrorController {
     /**
      * @param {object} options
      * @param {function} options.ErrorResponse
+     * @param {Environment} options.environment
      */
     constructor(options) {
         this.ErrorResponse = options.ErrorResponse;
+
+        this.environment = options.environment;
     }
 
     /**
-     * 
      * @param {string} whatsWrongWithRequest Explanation why request is malformed.
+     * @param {ContextualError|null} contextualError
      * @param {ErrorController~responseCallback} callback
      */
-    badRequest(whatsWrongWithRequest, callback) {
+    badRequest(whatsWrongWithRequest, contextualError, callback) {
+        let message = `Bad request: ${whatsWrongWithRequest}.`;
+        if (this.environment.isDev() && contextualError !== null) {
+            message += " " + contextualError.toString();
+        }
         const response = new this.ErrorResponse()
             .setStatusCode(400)
-            .setMessage(`Bad request: ${whatsWrongWithRequest}`);
+            .setMessage(message);
+        setImmediate(() => {
+            callback(response);
+        });
+    }
+
+    /**
+     * @param {string} generalErrorMessage
+     * @param {ContextualError} contextualError 
+     * @param {ErrorController~responseCallback} callback 
+     */
+    internalServerError(generalErrorMessage, contextualError, callback) {
+        let message = `Internal server error: ${generalErrorMessage}.`;
+        if (this.environment.isDev()) {
+            message += " " + contextualError.toString();
+        }
+        const response = new this.ErrorResponse()
+            .setStatusCode(500)
+            .setMessage(message);
         setImmediate(() => {
             callback(response);
         });

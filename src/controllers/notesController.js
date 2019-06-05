@@ -20,8 +20,10 @@ class NotesController {
         this.databaseDriver = options.databaseDriver;
     }
 
-    create(requestBody, callback) {
-        callback(new Error("notesController.create [Not yet implemented]"));
+    create(apiJson, callback) {
+        callback(new this.ErrorResponse()
+            .setStatusCode(500)
+            .setMessage("notesController.create [Not yet implemented]"));
     }
 
     /**
@@ -36,7 +38,7 @@ class NotesController {
                     const contextError = new this.ContextualError(
                         "NotesController failed to retrieve notes", err);
                     let message = "General error";
-                    if (this.environment === "development") {
+                    if (this.environment.isDev()) {
                         message = message + ": " + contextError.toString();
                     }
                     const response = new this.ErrorResponse()

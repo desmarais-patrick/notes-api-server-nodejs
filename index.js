@@ -10,6 +10,7 @@ const ErrorController = require("./src/controllers/errorController");
 const NotesController = require("./src/controllers/notesController");
 
 const ContextualError = require("./src/models/contextualError");
+const Environment = require("./src/models/Environment");
 const ErrorResponse = require("./src/models/errorResponse");
 const ListRequest = require("./src/models/listRequest");
 const Note = require("./src/models/note");
@@ -25,7 +26,7 @@ const Server = require("./src/server");
 
 // Variables.
 const port = process.env.PORT || 8080;
-const environment = process.env.NODE_ENV || "development";
+const environment = new Environment({NODE_ENV: process.env.NODE_ENV});
 
 // Initialization.
 const datastore = new Datastore();
@@ -42,7 +43,9 @@ const databaseDriver = new DatastoreDatabaseDriver({
 });
 
 const errorController = new ErrorController({
-    ErrorResponse
+    ErrorResponse,
+
+    environment
 });
 
 const apiJsonNoteTranslator = new ApiJsonNoteTranslator({
@@ -60,6 +63,8 @@ const notesController = new NotesController({
 });
 const router = new Router({
     URL,
+
+    ContextualError,
     ListRequest,
 
     errorController,
