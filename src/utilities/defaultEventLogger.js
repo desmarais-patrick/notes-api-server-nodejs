@@ -24,7 +24,8 @@ class DefaultEventLogger {
     }
 
     _print(type, message) {
-        console.log(`[${level}] ${type}: ${message}`);
+        const date = (new Date()).toString();
+        console.log(`${date} [${level}] ${type}: ${message}`);
     }
 }
 DefaultEventLogger.LOG_LEVELS = ["TRACE", "DEBUG", "INFO", "WARN", "ERROR", 
