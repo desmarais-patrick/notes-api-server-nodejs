@@ -1,17 +1,26 @@
 class DatastoreNoteTranslator {
+    /**
+     * @param {object} options 
+     * @param {function} options.Note
+     * @param {Datastore} options.datastore
+     */
     constructor(options) {
-        this.datastore = options.datastore;
         this.Note = options.Note;
+        this.datastore = options.datastore;
     }
 
+    /**
+     * @param {Note} note 
+     * @param {object} Datastore document.
+     */
     format(note) {
         let key;
 
         if (note.id !== null) {
-            // Existing notes have a key.
+            // Existing notes have a key compounded with their KIND.
             key = this.datastore.key([DatastoreNoteTranslator.DATASTORE_KIND, note.id]);
         } else {
-            // New key created for a new note.
+            // New note shall receive a new key.
             key = this.datastore.key(DatastoreNoteTranslator.DATASTORE_KIND);
         }
 
@@ -38,6 +47,10 @@ class DatastoreNoteTranslator {
         }
     }
 
+    /**
+     * @param {object} datastoreDocument 
+     * @returns {Note}
+     */
     read(datastoreDocument) {
         const meta = datastoreDocument[this.datastore.KEY];
         const date = datastoreDocument[DatastoreNoteTranslator.DATASTORE_KIND_PROPERTIES.DATE];
