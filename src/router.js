@@ -28,6 +28,9 @@ class Router {
         const urlPath = this._parseUrlPath(incomingMessage);
         switch(urlPath) {
             case "/":
+                this._sendWelcome(incomingMessage, serverResponse);
+                break;
+            case "/notes":
                 this._getNotesList(incomingMessage, serverResponse);
                 break;
             default:
@@ -65,11 +68,26 @@ class Router {
 
     _sendJson(serverResponse, response) {
         serverResponse.statusCode = response.statusCode;
-        serverResponse.setHeader("Content-Type", "application/json");
+        serverResponse.setHeader("Content-Type", "application/json;charset=UTF-8");
 
         const stringData = response.toString();
-        serverResponse.setHeader("Content-Length", 
-            Buffer.byteLength(stringData));
+        serverResponse.setHeader("Content-Length", Buffer.byteLength(stringData));
+        serverResponse.end(stringData);
+    }
+
+    _sendWelcome(incomingMessage, serverResponse) {
+        const welcomeMessage = "Welcome to the Notes API! 📔" + "\n" +
+            "\n" + 
+            "Available endpoints:" + "\n" +
+            "\n" +
+            " - GET `/notes`" + "\n";
+        this._sendText(serverResponse, welcomeMessage);
+    }
+
+    _sendText(serverResponse, stringData) {
+        serverResponse.statusCode = 200;
+        serverResponse.setHeader("Content-Type", "text/plain;charset=UTF-8");
+        serverResponse.setHeader("Content-Length", Buffer.byteLength(stringData));
         serverResponse.end(stringData);
     }
 }
