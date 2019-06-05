@@ -22,6 +22,7 @@ class SuccessResponse {
      * @returns {SuccessResponse} For chaining.
      */
     setProperty(key, withValue) {
+        // TODO Add assertion: "type" cannot be the key!
         this.data[key] = withValue;
         return this;
     }
