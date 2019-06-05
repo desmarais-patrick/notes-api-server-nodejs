@@ -9,11 +9,10 @@ const {Datastore} = require("@google-cloud/datastore");
 const ErrorController = require("./src/controllers/errorController");
 const NotesController = require("./src/controllers/notesController");
 
-const ListRequest = require("./src/models/listRequest");
+const ContextualError = require("./src/models/contextualError");
 const ErrorResponse = require("./src/models/errorResponse");
+const ListRequest = require("./src/models/listRequest");
 const SuccessResponse = require("./src/models/successResponse");
-
-const ContextualError = require("./src/utilities/contextualError");
 
 const DatastoreDatabaseDriver = require("./src/datastoreDatabaseDriver");
 
