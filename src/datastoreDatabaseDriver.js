@@ -4,12 +4,14 @@ class DatastoreDatabaseDriver {
     /**
      * @param {object} options 
      * @param {function} options.ContextualError
-     * @param {function} options.Datastore
+     * @param {Datastore} options.datastore
+     * @param {DatastoreNoteTranslator} options.datastoreNoteTranslator
      */
     constructor(options) {
         this.ContextualError = options.ContextualError;
 
-        this.datastore = new options.Datastore();
+        this.datastore = options.datastore;
+        this.noteTranslator = options.datastoreNoteTranslator;
     }
 
     /**
@@ -29,27 +31,15 @@ class DatastoreDatabaseDriver {
                 callback(contextError);
                 return;
             }
-            callback(null, entities.map((e) => this._parseNote(e)));
+            const notes = entities.map(e => this.noteTranslator.read(e));
+            callback(null, notes);
         });
     }
     /**
      * @callback DatastoreDatabaseDriver~getNotesCallback
      * @param {Error|ContextualError} err
-     * @param {object[]} parsedNotes
+     * @param {Note[]} parsedNotes
      */
-
-    _parseNote(datastoreEntity) {
-        const meta = datastoreEntity[this.datastore.KEY];
-        const id = meta.id;
-        const type = meta.kind;
-
-        return {
-            type,
-            id,
-            text: datastoreEntity["text"],
-            date: datastoreEntity["date"]
-        };
-    }
 }
 
 module.exports = DatastoreDatabaseDriver;

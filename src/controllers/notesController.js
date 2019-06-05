@@ -5,6 +5,8 @@ class NotesController {
      * @param {function} options.ContextualError
      * @param {function} options.ErrorResponse
      * @param {function} options.SuccessResponse
+     * 
+     * @param {ApiJsonNoteTranslator} options.apiJsonNoteTranslator
      * @param {string} options.environment
      * @param {DatastoreDatabaseDriver} options.databaseDriver
      */
@@ -13,6 +15,7 @@ class NotesController {
         this.ErrorResponse = options.ErrorResponse;
         this.SuccessResponse = options.SuccessResponse;
 
+        this.apiJsonNoteTranslator = options.apiJsonNoteTranslator;
         this.environment = options.environment;
         this.databaseDriver = options.databaseDriver;
     }
@@ -43,13 +46,12 @@ class NotesController {
                     return;
                 }
 
-                // TODO Translate `notes` from a Model to JSON response 
-                //      defined here.
+                const apiJsonNotes = notes.map(n => this.apiJsonNoteTranslator.format(n));
                 const response = new this.SuccessResponse()
                     .setType("Collection")
                     .setProperty("limit", listRequest.limit)
                     .setProperty("offset", listRequest.offset)
-                    .setProperty("items", notes);
+                    .setProperty("items", apiJsonNotes);
                 callback(response);
             }
         );

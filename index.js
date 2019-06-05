@@ -12,9 +12,13 @@ const NotesController = require("./src/controllers/notesController");
 const ContextualError = require("./src/models/contextualError");
 const ErrorResponse = require("./src/models/errorResponse");
 const ListRequest = require("./src/models/listRequest");
+const Note = require("./src/models/note");
 const SuccessResponse = require("./src/models/successResponse");
+const ValidationResult = require("./src/models/validationResult");
 
+const ApiJsonNoteTranslator = require("./src/apiJsonNoteTranslator");
 const DatastoreDatabaseDriver = require("./src/datastoreDatabaseDriver");
+const DatastoreNoteTranslator = require("./src/datastoreNoteTranslator");
 
 const Router = require("./src/router");
 const Server = require("./src/server");
@@ -24,24 +28,40 @@ const port = process.env.PORT || 8080;
 const environment = process.env.NODE_ENV || "development";
 
 // Initialization.
+const datastore = new Datastore();
+const datastoreNoteTranslator = new DatastoreNoteTranslator({
+    Note,
+
+    datastore
+});
 const databaseDriver = new DatastoreDatabaseDriver({
     ContextualError,
-    Datastore,
+
+    datastore,
+    datastoreNoteTranslator
 });
 
 const errorController = new ErrorController({
     ErrorResponse
 });
+
+const apiJsonNoteTranslator = new ApiJsonNoteTranslator({
+    Note,
+    ValidationResult
+});
 const notesController = new NotesController({
     ContextualError,
     ErrorResponse,
     SuccessResponse,
+
+    apiJsonNoteTranslator,
     environment,
     databaseDriver
 });
 const router = new Router({
     URL,
     ListRequest,
+
     errorController,
     notesController
 });
@@ -49,6 +69,7 @@ const router = new Router({
 // Server is ready to start.
 const server = new Server({
     HTTP,
+
     port,
     router
 });
