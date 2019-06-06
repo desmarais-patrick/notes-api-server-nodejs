@@ -20,6 +20,9 @@ class Router {
         this.errorController = options.errorController;
         this.notesController = options.notesController;
         this.welcomeController = options.welcomeController;
+
+        this.TEST_NOTE_ID_REGEXP = /^\/notes\/[0-9]+.*/;
+        this.MATCH_NOTE_ID_REGEXP = /^\/notes\/([0-9]+)(.*)$/;
     }
 
     /**
@@ -34,19 +37,30 @@ class Router {
     route(incomingMessage, serverResponse) {
         const method = incomingMessage.method;
         const urlPath = this._parseUrlPath(incomingMessage);
-        switch(method + " " + urlPath) {
-            case "GET /":
+
+        if (method === "GET") {
+            if (urlPath === "/") {
+                // GET /
                 this._welcome(incomingMessage, serverResponse);
-                break;
-            case "GET /notes":
+            } else if (urlPath === "/notes") {
+                // GET /notes
                 this._getNotesList(incomingMessage, serverResponse);
-                break;
-            case "POST /notes":
-                this._createNote(incomingMessage, serverResponse);
-                break;
-            default:
-                this._handleNotFound(incomingMessage, serverResponse);
-                break;
+            } else if (this.TEST_NOTE_ID_REGEXP.test(urlPath)) {
+                // GET /notes/{id}
+                this._getNote(incomingMessage, serverResponse);
+            }
+        } else if (method === "POST" && urlPath === "/notes") {
+            // POST /notes
+            this._createNote(incomingMessage, serverResponse);
+        } else if (method === "PUT" && this.TEST_NOTE_ID_REGEXP.test(urlPath)) {
+            // PUT /notes/{id}
+            this._updateNote(incomingMessage, serverResponse);
+        } else if (method === "DELETE" && this.TEST_NOTE_ID_REGEXP.test(urlPath)) {
+            // DELETE /notes/{id}
+            this._deleteNote(incomingMessage, serverResponse);
+        } else {
+            // Anything else...
+            this._handleNotFound(incomingMessage, serverResponse);
         }
     }
 
@@ -71,34 +85,73 @@ class Router {
         return value || defaultValue;
     }
 
-    _handleNotFound(incomingMessage, serverResponse) {
-        const pathToRequestResource = this._parseUrlPath(incomingMessage);
-        this.errorController.notFound(pathToRequestResource, 
+    _getNote(incomingMessage, serverResponse) {
+        const urlPath = this._parseUrlPath(incomingMessage);
+        const id = this._parseNoteId(urlPath);
+        if (id === null) {
+            this._handleInvalidNoteId(incomingMessage, serverResponse);
+            return;
+        }
+
+        this.notesController.get(id, 
             (response) => this._send(serverResponse, response));
     }
 
-    _parseUrlPath(incomingMessage) {
-        const url = this.URL.parse(incomingMessage.url);
-        return url.pathname;
+    _createNote(incomingMessage, serverResponse) {
+        this._parseJsonBody(incomingMessage, serverResponse, 
+            (contextualError, jsonBody) => {
+                if (contextualError) {
+                    this.errorController.internalServerError(
+                        "error processing request for create note",
+                        contextualError,
+                        (response) => this._send(serverResponse, response));
+                    return;
+                }
+
+                this.notesController.create(jsonBody,
+                    (response) => this._send(serverResponse, response));
+            }
+        );
     }
 
-    _createNote(incomingMessage, serverResponse) {
-        let body = "";
+    _updateNote(incomingMessage, serverResponse) {
+        const urlPath = this._parseUrlPath(incomingMessage);
+        const id = this._parseNoteId(urlPath);
+        if (id === null) {
+            this._handleInvalidNoteId(incomingMessage, serverResponse);
+            return;
+        }
+
+        this._parseJsonBody(incomingMessage, serverResponse,
+            (contextualError, jsonBody) => {
+                if (contextualError) {
+                    this.errorController.internalServerError(
+                        "error processing request for update note",
+                        contextualError,
+                        (response) => this._send(serverResponse, response));
+                    return;
+                }
+
+                this.notesController.update(id, jsonBody,
+                    (response) => this._send(serverResponse, response));
+            }
+        );
+    }
+
+    _parseJsonBody(incomingMessage, serverResponse, callback) {
+        let stringBody = "";
         incomingMessage.on("error", (err) => {
             const contextualError = new this.ContextualError(
-                "[Router] Failed to read incoming message body to create a note.", 
+                "[Router] Failed to read incoming message body.", 
                 err);
-            this.errorController.internalServerError(
-                "error processing request",
-                contextualError,
-                (response) => this._send(serverResponse, response));
+            callback(contextualError);
         });
         incomingMessage.on("data", function (chunk) {
             // TODO Add security on the maximum body size. ==> 400: Message is too long!
-            body += chunk;
+            stringBody += chunk;
         });
         incomingMessage.on("end", () => {
-            if (body.length === 0) {
+            if (stringBody.length === 0) {
                 this.errorController.badRequest(
                     "empty body",
                     null,
@@ -106,12 +159,12 @@ class Router {
                 return;
             }
 
-            let apiJson;
+            let jsonBody;
             try {
-                apiJson = JSON.parse(body);
+                jsonBody = JSON.parse(stringBody);
             } catch (err) {
                 const contextualError = new this.ContextualError(
-                    `[Router] Failed to parse JSON from incoming message body, in order to create a note.\nReceived:\n${body}`,
+                    `[Router] Failed to parse JSON from incoming message body.\nReceived:\n${stringBody}`,
                     err);
                 this.errorController.badRequest(
                     "bad JSON",
@@ -119,9 +172,52 @@ class Router {
                     (response) => this._send(serverResponse, response));
                 return;
             }
-            this.notesController.create(apiJson,
-                (response) => this._send(serverResponse, response));
+            callback(null, jsonBody);
         });
+    }
+
+    _deleteNote(incomingMessage, serverResponse) {
+        const urlPath = this._parseUrlPath(incomingMessage);
+        const id = this._parseNoteId(urlPath);
+        if (id === null) {
+            this._handleInvalidNoteId(incomingMessage, serverResponse);
+            return;
+        }
+
+        this.notesController.delete(id,
+            (response) => this._send(serverResponse, response));
+    }
+    
+    _parseNoteId(urlPath) {
+        let id = null;
+
+        const match = this.MATCH_NOTE_ID_REGEXP.exec(urlPath);
+        const potentialId = match[1];
+        const potentialError = match[2];
+        if (potentialError.length === 0) {
+            id = parseInt(potentialId, 10);
+        }
+
+        return id;
+    }
+
+    _handleInvalidNoteId(incomingMessage, serverResponse) {
+        const urlPath = this._parseUrlPath(incomingMessage);
+        this.errorController.badRequest(
+            `invalid \`id\` in (\`/notes/{id}\`): '${urlPath}'`,
+            null,
+            (response) => this._send(serverResponse, response));
+    }
+
+    _handleNotFound(incomingMessage, serverResponse) {
+        const requestedResource = incomingMessage.method + " " + this._parseUrlPath(incomingMessage);
+        this.errorController.notFound(requestedResource, 
+            (response) => this._send(serverResponse, response));
+    }
+
+    _parseUrlPath(incomingMessage) {
+        const url = this.URL.parse(incomingMessage.url);
+        return url.pathname;
     }
 
     _send(serverResponse, response) {

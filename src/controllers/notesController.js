@@ -90,15 +90,35 @@ class NotesController {
     }
 
     get(id, callback) {
-        callback(new Error("notesController.get [Not yet implemented]"));
+        // Create datastore query with filter for id.
+        // Run query to datastore.
+        console.log("Received id", id);
+        const response = new this.ErrorResponse()
+                .setStatusCode(500)
+                .setMessage("notesController.get [Not yet implemented]");
+        setImmediate(function () { callback(response) });
     }
 
-    update(id, requestBody, callback) {
-        callback(new Error("notesController.update [Not yet implemented]"));
+    update(id, apiJson, callback) {
+        // Validate apiJson
+        // Translate apiJson to note
+        // Add id to note
+        // Save note to datastore.
+        console.log("Received id", id);
+        console.log("Received apiJson", apiJson);
+        const response = new this.ErrorResponse()
+                .setStatusCode(500)
+                .setMessage("notesController.update [Not yet implemented]");
+        setImmediate(function () { callback(response) });
     }
 
     delete(id, callback) {
-        callback(new Error("notesController.delete [Not yet implemented]"));
+        // Delete note from datastore.
+        console.log("Received id", id);
+        const response = new this.ErrorResponse()
+                .setStatusCode(500)
+                .setMessage("notesController.delete [Not yet implemented]");
+        setImmediate(function () { callback(response) });
     }
 
     /**
