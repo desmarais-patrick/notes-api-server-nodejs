@@ -20,6 +20,10 @@ class NotesController {
         this.databaseDriver = options.databaseDriver;
     }
 
+    /**
+     * @param {object} apiJson 
+     * @param {NotesController~responseCallback} callback 
+     */
     create(apiJson, callback) {
         const validationResult = this.apiJsonNoteTranslator.validate(apiJson);
         if (!validationResult.isValid) {
@@ -54,7 +58,6 @@ class NotesController {
     }
 
     /**
-     * 
      * @param {ListRequest} listRequest 
      * @param {NotesController~responseCallback} callback 
      */
