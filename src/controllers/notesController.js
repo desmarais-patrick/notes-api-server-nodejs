@@ -89,14 +89,43 @@ class NotesController {
         );
     }
 
+    /**
+     * @param {number} id 
+     * @param {NotesController~responseCallback} callback 
+     */
     get(id, callback) {
-        // Create datastore query with filter for id.
-        // Run query to datastore.
-        console.log("Received id", id);
-        const response = new this.ErrorResponse()
-                .setStatusCode(500)
-                .setMessage("notesController.get [Not yet implemented]");
-        setImmediate(function () { callback(response) });
+        this.databaseDriver.getNote(id, 
+            (err, note) => {
+                if (err) {
+                    const contextError = new this.ContextualError(
+                        `NotesController failed to retrieve note ${id}`, err);
+                    let message = "General error";
+                    if (this.environment.isDev()) {
+                        message = message + ": " + contextError.toString();
+                    }
+                    const response = new this.ErrorResponse()
+                        .setStatusCode(500)
+                        .setMessage(message);
+                    callback(response);
+                    return;
+                }
+
+                if (!note) {
+                    const response = new this.ErrorResponse()
+                        .setStatusCode(404)
+                        .setMessage(`Note '${id}' cannot be found.`);
+                    callback(response);
+                    return;
+                }
+
+                const apiJsonNote = this.apiJsonNoteTranslator.format(note);
+                const response = new this.SuccessResponse();
+                for (let property in apiJsonNote) {
+                    response.setProperty(property, apiJsonNote[property]);
+                }
+                callback(response);
+            }
+        );
     }
 
     update(id, apiJson, callback) {

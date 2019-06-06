@@ -64,6 +64,37 @@ class DatastoreDatabaseDriver {
      * @param {ContextualError} err
      * @param {Note[]} parsedNotes
      */
+
+    /**
+     * @param {number} id
+     * @param {DatastoreDatabaseDriver~getNoteCallback} callback 
+     */
+    getNote(id, callback) {
+        const key = this.datastore.key([NOTE_KIND, id]);
+        this.datastore.get(key, (err, entity) => {
+            if (err) {
+                const contextError = new this.ContextualError(
+                    `DatastoreDatabaseDriver failed to get note '${id}'.`,
+                    err
+                );
+                callback(contextError, null);
+                return;
+            }
+            
+            if (!entity) {
+                callback(null, null);
+                return;
+            }
+
+            const note = this.noteTranslator.read(entity);
+            callback(null, note);
+        });
+    }
+    /**
+     * @callback DatastoreDatabaseDriver~getNoteCallback
+     * @param {ContextualError} err
+     * @param {Note} note
+     */
 }
 
 module.exports = DatastoreDatabaseDriver;
