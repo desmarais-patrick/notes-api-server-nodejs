@@ -16,6 +16,7 @@ const ErrorResponse = require("./src/models/errorResponse");
 const ListRequest = require("./src/models/listRequest");
 const Note = require("./src/models/note");
 const SuccessResponse = require("./src/models/successResponse");
+const TextResponse = require("./src/models/textResponse");
 const ValidationResult = require("./src/models/validationResult");
 
 const ApiJsonNoteTranslator = require("./src/apiJsonNoteTranslator");
@@ -74,7 +75,8 @@ const router = new Router({
     ListRequest,
 
     errorController,
-    notesController
+    notesController,
+    welcomeController
 });
 
 // Server is ready to start.

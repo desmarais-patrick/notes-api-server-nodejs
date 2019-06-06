@@ -9,7 +9,7 @@ class WelcomeController {
     welcome(callback) {
         const response = new this.TextResponse()
 
-        const message = "Welcome to the Notes API! 📔" + "\n";
+        let message = "Welcome to the Notes API! 📔" + "\n";
         message += "\n";
         message += "Available endpoints:" + "\n";
         message += "\n";
