@@ -32,13 +32,6 @@ class ApiJsonNoteTranslator {
     validate(apiJson) {
         const result = new this.ValidationResult();
 
-        const id = apiJson.id;
-        if (typeof id !== "string" && id !== null && typeof id !== "undefined") {
-            // `id` can be null when creating a new note.
-            return result.setIsValid(false)
-                .setReason("invalid value for property `id`. Must be string (existing note), null or unspecified (new note).");
-        }
-
         const date = apiJson.date;
         if (typeof date !== "string") {
             return result.setIsValid(false)
@@ -73,10 +66,8 @@ class ApiJsonNoteTranslator {
      * @returns {Note}
      */
     read(apiJson) {
-        const id = apiJson.id || null;
         const date = new Date(apiJson.date);
         return new this.Note()
-            .setId(id)
             .setDate(date)
             .setText(apiJson.text);
     }
