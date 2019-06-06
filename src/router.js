@@ -36,7 +36,7 @@ class Router {
         const urlPath = this._parseUrlPath(incomingMessage);
         switch(method + " " + urlPath) {
             case "GET /":
-                this._sendWelcome(incomingMessage, serverResponse);
+                this._welcome(incomingMessage, serverResponse);
                 break;
             case "GET /notes":
                 this._getNotesList(incomingMessage, serverResponse);
@@ -45,14 +45,14 @@ class Router {
                 this._createNote(incomingMessage, serverResponse);
                 break;
             default:
-                this._sendNotFound(incomingMessage, serverResponse);
+                this._handleNotFound(incomingMessage, serverResponse);
                 break;
         }
     }
 
-    _sendWelcome(incomingMessage, serverResponse) {
+    _welcome(incomingMessage, serverResponse) {
         this.welcomeController.welcome(
-            (response) => this._sendResponse(serverResponse, response));
+            (response) => this._send(serverResponse, response));
     }
 
     _getNotesList(incomingMessage, serverResponse) {
@@ -62,7 +62,7 @@ class Router {
             .setOffset(offset)
             .setLimit(limit);
         this.notesController.list(request, 
-            (response) => this._sendResponse(serverResponse, response));
+            (response) => this._send(serverResponse, response));
     }
 
     _parseQueryParameter(incomingMessage, parameterName, defaultValue) {
@@ -71,10 +71,10 @@ class Router {
         return value || defaultValue;
     }
 
-    _sendNotFound(incomingMessage, serverResponse) {
+    _handleNotFound(incomingMessage, serverResponse) {
         const pathToRequestResource = this._parseUrlPath(incomingMessage);
         this.errorController.notFound(pathToRequestResource, 
-            (response) => this._sendResponse(serverResponse, response));
+            (response) => this._send(serverResponse, response));
     }
 
     _parseUrlPath(incomingMessage) {
@@ -91,7 +91,7 @@ class Router {
             this.errorController.internalServerError(
                 "error processing request",
                 contextualError,
-                (response) => this._sendResponse(serverResponse, response));
+                (response) => this._send(serverResponse, response));
         });
         incomingMessage.on("data", function (chunk) {
             // TODO Add security on the maximum body size. ==> 400: Message is too long!
@@ -102,7 +102,7 @@ class Router {
                 this.errorController.badRequest(
                     "empty body",
                     null,
-                    (response) => this._sendResponse(serverResponse, response));
+                    (response) => this._send(serverResponse, response));
                 return;
             }
 
@@ -116,15 +116,15 @@ class Router {
                 this.errorController.badRequest(
                     "bad JSON",
                     contextualError,
-                    (response) => this._sendResponse(serverResponse, response));
+                    (response) => this._send(serverResponse, response));
                 return;
             }
             this.notesController.create(apiJson,
-                (response) => this._sendResponse(serverResponse, response));
+                (response) => this._send(serverResponse, response));
         });
     }
 
-    _sendResponse(serverResponse, response) {
+    _send(serverResponse, response) {
         serverResponse.statusCode = response.statusCode;
         serverResponse.setHeader("Content-Type", response.contentType);
 
