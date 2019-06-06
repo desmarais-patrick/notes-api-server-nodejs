@@ -21,9 +21,18 @@ class NotesController {
     }
 
     create(apiJson, callback) {
+        const validationResult = this.apiJsonNoteTranslator.validate(apiJson);
+        if (!validationResult.isValid) {
+            const response = new this.ErrorResponse()
+                .setStatusCode(400)
+                .setMessage(`Bad request: ${validationResult.reason}`);
+            setImmediate(function () { callback(response) });
+            return;
+        }
+
         callback(new this.ErrorResponse()
             .setStatusCode(500)
-            .setMessage("notesController.create [Not yet implemented]"));
+            .setMessage("notesController.create [Rest not yet implemented 😊]"));
     }
 
     /**

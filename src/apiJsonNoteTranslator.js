@@ -30,34 +30,38 @@ class ApiJsonNoteTranslator {
      * @returns {ValidationResult}
      */
     validate(apiJson) {
-        const result = new ValidationResult();
+        const result = new this.ValidationResult();
 
         const id = apiJson.id;
-        if (typeof id !== "string" && id !== null) {
+        if (typeof id !== "string" && id !== null && typeof id !== "undefined") {
             // `id` can be null when creating a new note.
             return result.setIsValid(false)
-                .setReason("Invalid value for property `id`. Must be string or null.");
+                .setReason("invalid value for property `id`. Must be string (existing note), null or unspecified (new note).");
         }
 
         const date = apiJson.date;
         if (typeof date !== "string") {
             return result.setIsValid(false)
-                .setReason("Missing value for property `date`.");
+                .setReason("missing value for property `date`.");
         }
         if (!ApiJsonNoteTranslator.DATE_REGEXP.test(date)) {
             return result.setIsValid(false)
-                .setReason("Expected value for property `date` to have format: " +
+                .setReason("expected value for property `date` to have format: " +
                     "24-character-long, ISO-8601 (YYYY-MM-DDTHH:mm:ss.sssZ).")
         }
 
         const text = apiJson.text;
+        if (typeof text === "undefined") {
+            return result.setIsValid(false)
+                .setReason("missing value for property `text`.");
+        }
         if (typeof text !== "string") {
             return result.setIsValid(false)
-                .setReason("Missing value for property `text`.");
+                .setReason("value for property `text` must be string.");
         }
         if (text.length >= ApiJsonNoteTranslator.TEXT_MAX_LENGTH) {
             return result.setIsValid(false)
-                .setReason("Value *length* for property `text` exceeds " + 
+                .setReason("value *length* for property `text` exceeds " + 
                     ApiJsonNoteTranslator.TEXT_MAX_LENGTH);
         }
 
