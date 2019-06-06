@@ -30,9 +30,27 @@ class NotesController {
             return;
         }
 
-        callback(new this.ErrorResponse()
-            .setStatusCode(500)
-            .setMessage("notesController.create [Rest not yet implemented 😊]"));
+        const note = this.apiJsonNoteTranslator.read(apiJson);
+        this.databaseDriver.create(note, (err) => {
+            if (err) {
+                const contextError = new this.ContextualError(
+                    "NotesController failed to create note", err);
+                let message = "General error";
+                if (this.environment.isDev()) {
+                    message = message + ": " + contextError.toString();
+                }
+                const response = new this.ErrorResponse()
+                    .setStatusCode(500)
+                    .setMessage(message);
+                callback(response);
+                return;
+            }
+
+            const response = new this.SuccessResponse()
+                .setStatusCode(201)
+                .setType("NoteCreated")
+            callback(response);
+        });
     }
 
     /**

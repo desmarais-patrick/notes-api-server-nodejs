@@ -15,6 +15,30 @@ class DatastoreDatabaseDriver {
     }
 
     /**
+     * @param {Note} note 
+     * @param {DatastoreDatabaseDriver~createCallback} callback 
+     */
+    create(note, callback) {
+        const datastoreDocument = this.noteTranslator.format(note);
+        this.datastore.save(datastoreDocument, (err) => {
+            if (err) {
+                const contextError = new this.ContextualError(
+                    "DatastoreDatabaseDriver failed to save new note.",
+                    err
+                );
+                callback(contextError);
+                return;
+            }
+
+            callback(null);
+        });
+    }
+    /**
+     * @callback DatastoreDatabaseDriver~createCallback
+     * @param {ContextualError} err
+     */
+
+    /**
      * @param {ListRequest} listRequest
      * @param {DatastoreDatabaseDriver~getNotesCallback} callback 
      */
@@ -37,7 +61,7 @@ class DatastoreDatabaseDriver {
     }
     /**
      * @callback DatastoreDatabaseDriver~getNotesCallback
-     * @param {Error|ContextualError} err
+     * @param {ContextualError} err
      * @param {Note[]} parsedNotes
      */
 }

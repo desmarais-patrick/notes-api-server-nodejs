@@ -7,6 +7,15 @@ class SuccessResponse {
     }
 
     /**
+     * @param {number} statusCode 
+     * @returns {SuccessResponse} For chaining.
+     */
+    setStatusCode(statusCode) {
+        this.statusCode = statusCode;
+        return this;
+    }
+
+    /**
      * 
      * @param {string} type 
      * @returns {SuccessResponse} For chaining.
