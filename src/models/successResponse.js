@@ -1,5 +1,6 @@
 class SuccessResponse {
     constructor() {
+        this.contentType = "application/json;charset=UTF-8";
         this.statusCode = 200;
         this.type = null;
         this.data = {};
@@ -27,10 +28,7 @@ class SuccessResponse {
         return this;
     }
 
-    /**
-     * @returns {string} Formatted response for sending over the wire.
-     */
-    toString() {
+    get content() {
         const json = {
             type: this.type,
         };

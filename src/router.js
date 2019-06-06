@@ -9,6 +9,7 @@ class Router {
      * 
      * @param {ErrorController} options.errorController
      * @param {NotesController} options.notesController
+     * @param {WelcomeController} options.welcomeController
      */
     constructor(options) {
         this.URL = options.URL;
@@ -18,6 +19,7 @@ class Router {
 
         this.errorController = options.errorController;
         this.notesController = options.notesController;
+        this.welcomeController = options.welcomeController;
     }
 
     /**
@@ -49,19 +51,8 @@ class Router {
     }
 
     _sendWelcome(incomingMessage, serverResponse) {
-        const welcomeMessage = "Welcome to the Notes API! 📔" + "\n" +
-            "\n" + 
-            "Available endpoints:" + "\n" +
-            "\n" +
-            " - GET `/notes`" + "\n";
-        this._sendText(serverResponse, welcomeMessage);
-    }
-
-    _sendText(serverResponse, stringData) {
-        serverResponse.statusCode = 200;
-        serverResponse.setHeader("Content-Type", "text/plain;charset=UTF-8");
-        serverResponse.setHeader("Content-Length", Buffer.byteLength(stringData));
-        serverResponse.end(stringData);
+        this.welcomeController.welcome(
+            (response) => this._sendResponse(serverResponse, response));
     }
 
     _getNotesList(incomingMessage, serverResponse) {
@@ -71,7 +62,7 @@ class Router {
             .setOffset(offset)
             .setLimit(limit);
         this.notesController.list(request, 
-            (response) => this._sendJson(serverResponse, response));
+            (response) => this._sendResponse(serverResponse, response));
     }
 
     _parseQueryParameter(incomingMessage, parameterName, defaultValue) {
@@ -83,21 +74,12 @@ class Router {
     _sendNotFound(incomingMessage, serverResponse) {
         const pathToRequestResource = this._parseUrlPath(incomingMessage);
         this.errorController.notFound(pathToRequestResource, 
-            (response) => this._sendJson(serverResponse, response));
+            (response) => this._sendResponse(serverResponse, response));
     }
 
     _parseUrlPath(incomingMessage) {
         const url = this.URL.parse(incomingMessage.url);
         return url.pathname;
-    }
-
-    _sendJson(serverResponse, response) {
-        serverResponse.statusCode = response.statusCode;
-        serverResponse.setHeader("Content-Type", "application/json;charset=UTF-8");
-
-        const stringData = response.toString();
-        serverResponse.setHeader("Content-Length", Buffer.byteLength(stringData));
-        serverResponse.end(stringData);
     }
 
     _createNote(incomingMessage, serverResponse) {
@@ -109,7 +91,7 @@ class Router {
             this.errorController.internalServerError(
                 "error processing request",
                 contextualError,
-                (response) => this._sendJson(serverResponse, response));
+                (response) => this._sendResponse(serverResponse, response));
         });
         incomingMessage.on("data", function (chunk) {
             // TODO Add security on the maximum body size. ==> 400: Message is too long!
@@ -120,7 +102,7 @@ class Router {
                 this.errorController.badRequest(
                     "empty body",
                     null,
-                    (response) => this._sendJson(serverResponse, response));
+                    (response) => this._sendResponse(serverResponse, response));
                 return;
             }
 
@@ -134,12 +116,21 @@ class Router {
                 this.errorController.badRequest(
                     "bad JSON",
                     contextualError,
-                    (response) => this._sendJson(serverResponse, response));
+                    (response) => this._sendResponse(serverResponse, response));
                 return;
             }
             this.notesController.create(apiJson,
-                (response) => this._sendJson(serverResponse, response));
+                (response) => this._sendResponse(serverResponse, response));
         });
+    }
+
+    _sendResponse(serverResponse, response) {
+        serverResponse.statusCode = response.statusCode;
+        serverResponse.setHeader("Content-Type", response.contentType);
+
+        const stringData = response.content;
+        serverResponse.setHeader("Content-Length", Buffer.byteLength(stringData));
+        serverResponse.end(stringData);
     }
 }
 

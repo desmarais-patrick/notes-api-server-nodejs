@@ -8,6 +8,7 @@ const {Datastore} = require("@google-cloud/datastore");
 // Application module dependencies.
 const ErrorController = require("./src/controllers/errorController");
 const NotesController = require("./src/controllers/notesController");
+const WelcomeController = require("./src/controllers/welcomeController");
 
 const ContextualError = require("./src/models/contextualError");
 const Environment = require("./src/models/Environment");
@@ -61,6 +62,11 @@ const notesController = new NotesController({
     environment,
     databaseDriver
 });
+
+const welcomeController = new WelcomeController({
+    TextResponse
+});
+
 const router = new Router({
     URL,
 
