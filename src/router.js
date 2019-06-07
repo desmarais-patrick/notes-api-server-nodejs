@@ -22,7 +22,6 @@ class Router {
         this.welcomeController = options.welcomeController;
 
         this.TEST_NOTE_ID_REGEXP = /^\/notes\/[0-9]+.*/;
-        this.MATCH_NOTE_ID_REGEXP = /^\/notes\/([0-9]+)(.*)$/;
     }
 
     /**
@@ -36,26 +35,26 @@ class Router {
      */
     route(incomingMessage, serverResponse) {
         const method = incomingMessage.method;
-        const urlPath = this._parseUrlPath(incomingMessage);
+        const pathname = this._parseUrlPathname(incomingMessage);
 
         if (method === "GET") {
-            if (urlPath === "/") {
+            if (pathname === "/") {
                 // GET /
                 this._welcome(incomingMessage, serverResponse);
-            } else if (urlPath === "/notes") {
+            } else if (pathname === "/notes") {
                 // GET /notes
                 this._getNotesList(incomingMessage, serverResponse);
-            } else if (this.TEST_NOTE_ID_REGEXP.test(urlPath)) {
+            } else if (this.TEST_NOTE_ID_REGEXP.test(pathname)) {
                 // GET /notes/{id}
                 this._getNote(incomingMessage, serverResponse);
             }
-        } else if (method === "POST" && urlPath === "/notes") {
+        } else if (method === "POST" && pathname === "/notes") {
             // POST /notes
             this._createNote(incomingMessage, serverResponse);
-        } else if (method === "PUT" && this.TEST_NOTE_ID_REGEXP.test(urlPath)) {
+        } else if (method === "PUT" && this.TEST_NOTE_ID_REGEXP.test(pathname)) {
             // PUT /notes/{id}
             this._updateNote(incomingMessage, serverResponse);
-        } else if (method === "DELETE" && this.TEST_NOTE_ID_REGEXP.test(urlPath)) {
+        } else if (method === "DELETE" && this.TEST_NOTE_ID_REGEXP.test(pathname)) {
             // DELETE /notes/{id}
             this._deleteNote(incomingMessage, serverResponse);
         } else {
@@ -86,13 +85,8 @@ class Router {
     }
 
     _getNote(incomingMessage, serverResponse) {
-        const urlPath = this._parseUrlPath(incomingMessage);
-        const id = this._parseNoteId(urlPath);
-        if (id === null) {
-            this._handleInvalidNoteId(incomingMessage, serverResponse);
-            return;
-        }
-
+        const pathname = this._parseUrlPathname(incomingMessage);
+        const id = this._parseNoteId(pathname);
         this.notesController.get(id, 
             (response) => this._send(serverResponse, response));
     }
@@ -115,13 +109,8 @@ class Router {
     }
 
     _updateNote(incomingMessage, serverResponse) {
-        const urlPath = this._parseUrlPath(incomingMessage);
-        const id = this._parseNoteId(urlPath);
-        if (id === null) {
-            this._handleInvalidNoteId(incomingMessage, serverResponse);
-            return;
-        }
-
+        const pathname = this._parseUrlPathname(incomingMessage);
+        const id = this._parseNoteId(pathname);
         this._parseJsonBody(incomingMessage, serverResponse,
             (contextualError, jsonBody) => {
                 if (contextualError) {
@@ -177,45 +166,26 @@ class Router {
     }
 
     _deleteNote(incomingMessage, serverResponse) {
-        const urlPath = this._parseUrlPath(incomingMessage);
-        const id = this._parseNoteId(urlPath);
-        if (id === null) {
-            this._handleInvalidNoteId(incomingMessage, serverResponse);
-            return;
-        }
-
+        const pathname = this._parseUrlPathname(incomingMessage);
+        const id = this._parseNoteId(pathname);
         this.notesController.delete(id,
             (response) => this._send(serverResponse, response));
     }
     
-    _parseNoteId(urlPath) {
-        let id = null;
-
-        const match = this.MATCH_NOTE_ID_REGEXP.exec(urlPath);
-        const potentialId = match[1];
-        const potentialError = match[2];
-        if (potentialError.length === 0) {
-            id = parseInt(potentialId, 10);
-        }
-
+    _parseNoteId(urlPathname) {
+        // "/notes/1234" --> "1234"
+        const id = urlPathname.substr("/notes/".length);
         return id;
     }
 
-    _handleInvalidNoteId(incomingMessage, serverResponse) {
-        const urlPath = this._parseUrlPath(incomingMessage);
-        this.errorController.badRequest(
-            `invalid \`id\` in (\`/notes/{id}\`): '${urlPath}'`,
-            null,
-            (response) => this._send(serverResponse, response));
-    }
-
     _handleNotFound(incomingMessage, serverResponse) {
-        const requestedResource = incomingMessage.method + " " + this._parseUrlPath(incomingMessage);
+        const pathname = this._parseUrlPathname(incomingMessage);
+        const requestedResource = incomingMessage.method + " " + pathname;
         this.errorController.notFound(requestedResource, 
             (response) => this._send(serverResponse, response));
     }
 
-    _parseUrlPath(incomingMessage) {
+    _parseUrlPathname(incomingMessage) {
         const url = this.URL.parse(incomingMessage.url);
         return url.pathname;
     }

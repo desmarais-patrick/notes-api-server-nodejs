@@ -9,6 +9,7 @@ class NotesController {
      * @param {ApiJsonNoteTranslator} options.apiJsonNoteTranslator
      * @param {string} options.environment
      * @param {DatastoreDatabaseDriver} options.databaseDriver
+     * @param {NoteValidation} options.noteValidation
      */
     constructor(options) {
         this.ContextualError = options.ContextualError;
@@ -18,6 +19,7 @@ class NotesController {
         this.apiJsonNoteTranslator = options.apiJsonNoteTranslator;
         this.environment = options.environment;
         this.databaseDriver = options.databaseDriver;
+        this.noteValidation = options.noteValidation;
     }
 
     /**
@@ -25,17 +27,24 @@ class NotesController {
      * @param {NotesController~responseCallback} callback 
      */
     create(apiJson, callback) {
-        const validationResult = this.apiJsonNoteTranslator.validate(apiJson);
-        if (!validationResult.isValid) {
-            const response = new this.ErrorResponse()
-                .setStatusCode(400)
-                .setMessage(`Bad request: ${validationResult.reason}`);
-            setImmediate(function () { callback(response) });
+        // Validate input.
+        const validationResultForDate = this.noteValidation.validateDate(apiJson.date);
+        if (!validationResultForDate.isValid) {
+            this._badRequest(validationResultForDate, callback);
             return;
         }
 
+        const validationResultForText = this.noteValidation.validateText(apiJson.text);
+        if (!validationResultForText.isValid) {
+            this._badRequest(validationResultForText, callback);
+            return;
+        }
+
+        // Translate to Note.
         const note = this.apiJsonNoteTranslator.read(apiJson);
-        this.databaseDriver.create(note, (err) => {
+
+        // Save to database.
+        this.databaseDriver.save(note, (err) => {
             if (err) {
                 const contextError = new this.ContextualError(
                     "NotesController failed to create note", err);
@@ -94,7 +103,16 @@ class NotesController {
      * @param {NotesController~responseCallback} callback 
      */
     get(id, callback) {
-        this.databaseDriver.getNote(id, 
+        // Validate id.
+        const validationResult = this.noteValidation.validateId(id);
+        if (!validationResult.isValid) {
+            this._badRequest(validationResult, callback);
+            return;
+        }
+        const idAsNumber = parseInt(id, 10);
+
+        // Fetch note from database!
+        this.databaseDriver.getNote(idAsNumber, 
             (err, note) => {
                 if (err) {
                     const contextError = new this.ContextualError(
@@ -129,16 +147,52 @@ class NotesController {
     }
 
     update(id, apiJson, callback) {
-        // Validate apiJson
-        // Translate apiJson to note
-        // Add id to note
-        // Save note to datastore.
-        console.log("Received id", id);
-        console.log("Received apiJson", apiJson);
-        const response = new this.ErrorResponse()
-                .setStatusCode(500)
-                .setMessage("notesController.update [Not yet implemented]");
-        setImmediate(function () { callback(response) });
+        // Validate apiJson.
+        const validationResultForId = this.noteValidation.validateId(id);
+        if (!validationResultForId.isValid) {
+            this._badRequest(validationResultForId, callback);
+            return;
+        }
+        const idAsNumber = parseInt(id, 10);
+
+        const validationResultForDate = this.noteValidation.validateDate(apiJson.date);
+        if (!validationResultForDate.isValid) {
+            this._badRequest(validationResultForDate, callback);
+            return;
+        }
+
+        const validationResultForText = this.noteValidation.validateText(apiJson.text);
+        if (!validationResultForText.isValid) {
+            this._badRequest(validationResultForText, callback);
+            return;
+        }
+
+        // Translate to Note.
+        const note = this.apiJsonNoteTranslator.read(apiJson);
+        note.setId(idAsNumber);
+
+        // Save to database.
+        this.databaseDriver.save(note, (err) => {
+            if (err) {
+                const contextError = new this.ContextualError(
+                    "NotesController failed to update note", err);
+                let message = "General error";
+                if (this.environment.isDev()) {
+                    message = message + ": " + contextError.toString();
+                }
+                const response = new this.ErrorResponse()
+                    .setStatusCode(500)
+                    .setMessage(message);
+                callback(response);
+                return;
+            }
+
+            const response = new this.SuccessResponse()
+                .setStatusCode(200)
+                .setType("NoteUpdated")
+                .setProperty("id", id);
+            callback(response);
+        });
     }
 
     delete(id, callback) {
@@ -154,6 +208,13 @@ class NotesController {
      * @callback NotesController~responseCallback
      * @param {SuccessResponse|ErrorResponse} response
      */
+
+    _badRequest(validationResult, callback) {
+        const response = new this.ErrorResponse()
+            .setStatusCode(400)
+            .setMessage(`Bad request: ${validationResult.reason}`);
+        setImmediate(function () { callback(response) });
+    }
 }
 
 module.exports = NotesController;

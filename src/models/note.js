@@ -6,7 +6,7 @@ class Note {
     }
 
     /**
-     * @param {string|null} id 
+     * @param {number|null} id 
      * @returns {Note} For chaining.
      */
     setId(id) {
@@ -30,6 +30,34 @@ class Note {
     setText(text) {
         this.text = text;
         return this;
+    }
+
+    /**
+     * @returns {string}
+     */
+    toString() {
+        let id;
+        if (typeof this.id === "number") {
+            id = id.toString();
+        } else {
+            id = this.id + "";
+        }
+
+        let date;
+        if (typeof this.date === "object" && this.date.constructor.name === "Date") {
+            date = this.date.toISOString();
+        } else {
+            date = this.date + "";
+        }
+
+        let text;
+        if (typeof this.text === "string" && this.text.length > 7) {
+            text = this.text.substring(0, 7) + "...";
+        } else {
+            text = this.text + "";
+        }
+
+        return `Note (id=${id}; date=${date}; text=${text})`
     }
 }
 

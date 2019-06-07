@@ -2,11 +2,9 @@ class ApiJsonNoteTranslator {
     /**
      * @param {object} options
      * @param {function} options.Note
-     * @param {function} options.ValidationResult
      */
     constructor(options) {
         this.Note = options.Note;
-        this.ValidationResult = options.ValidationResult;
     }
 
     /**
@@ -27,42 +25,6 @@ class ApiJsonNoteTranslator {
 
     /**
      * @param {object} apiJson 
-     * @returns {ValidationResult}
-     */
-    validate(apiJson) {
-        const result = new this.ValidationResult();
-
-        const date = apiJson.date;
-        if (typeof date !== "string") {
-            return result.setIsValid(false)
-                .setReason("missing value for property `date`.");
-        }
-        if (!ApiJsonNoteTranslator.DATE_REGEXP.test(date)) {
-            return result.setIsValid(false)
-                .setReason("expected value for property `date` to have format: " +
-                    "24-character-long, ISO-8601 (YYYY-MM-DDTHH:mm:ss.sssZ).")
-        }
-
-        const text = apiJson.text;
-        if (typeof text === "undefined") {
-            return result.setIsValid(false)
-                .setReason("missing value for property `text`.");
-        }
-        if (typeof text !== "string") {
-            return result.setIsValid(false)
-                .setReason("value for property `text` must be string.");
-        }
-        if (text.length >= ApiJsonNoteTranslator.TEXT_MAX_LENGTH) {
-            return result.setIsValid(false)
-                .setReason("value *length* for property `text` exceeds " + 
-                    ApiJsonNoteTranslator.TEXT_MAX_LENGTH);
-        }
-
-        return result.setIsValid(true);
-    }
-
-    /**
-     * @param {object} apiJson 
      * @returns {Note}
      */
     read(apiJson) {
@@ -74,7 +36,5 @@ class ApiJsonNoteTranslator {
 }
 ApiJsonNoteTranslator.TRANSLATOR_ID = "api-json-note-translator";
 ApiJsonNoteTranslator.API_JSON_TYPE = "Note";
-ApiJsonNoteTranslator.DATE_REGEXP = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
-ApiJsonNoteTranslator.TEXT_MAX_LENGTH = 1000000;
 
 module.exports = ApiJsonNoteTranslator;

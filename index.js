@@ -22,6 +22,7 @@ const ValidationResult = require("./src/models/validationResult");
 const ApiJsonNoteTranslator = require("./src/apiJsonNoteTranslator");
 const DatastoreDatabaseDriver = require("./src/datastoreDatabaseDriver");
 const DatastoreNoteTranslator = require("./src/datastoreNoteTranslator");
+const NoteValidation = require("./src/noteValidation");
 
 const Router = require("./src/router");
 const Server = require("./src/server");
@@ -51,7 +52,9 @@ const errorController = new ErrorController({
 });
 
 const apiJsonNoteTranslator = new ApiJsonNoteTranslator({
-    Note,
+    Note
+});
+const noteValidation = new NoteValidation({
     ValidationResult
 });
 const notesController = new NotesController({
@@ -61,7 +64,8 @@ const notesController = new NotesController({
 
     apiJsonNoteTranslator,
     environment,
-    databaseDriver
+    databaseDriver,
+    noteValidation
 });
 
 const welcomeController = new WelcomeController({
