@@ -35,6 +35,13 @@ res.send(response, callback);
 res.sendInChunks(chunkedResponse, callback);
 ```
 
+**Review data translation**
+@Router, @Database, @Controller
+
+ - datastoreNoteTranslation.js and apiJsonNoteTranslation.js
+ - Should translation be called parsing?
+ - Are there design patterns, maybe similar to validation regarding this?
+
 **Design a new input validation approach**
 @DataValidation, @Router, @Controller, @Model
 
@@ -42,6 +49,7 @@ res.sendInChunks(chunkedResponse, callback);
    - Hint: ETL software architecture.
    - Keywords: data translation, validation, load.
  - Where should we place validation? Controller, model, ApiJsonParser?
+ - How strict should the input be checked?
 
 **Data format as configuration?**
 @DataValidation, @Configuration
@@ -50,6 +58,17 @@ res.sendInChunks(chunkedResponse, callback);
  - The ID is dependent on database in Google Cloud.
  - Are these good formats for the application, technology?
  - Should format validation be configurable? What's the advantage?
+
+**Abstract database used**
+@Database
+
+Avoid being closed to using one infrastructure.
+
+ - Inspect creation of an ORM.
+ - Inspect creation of a simple JSON file database equivalent for local development.
+ - Inspect data utilities for export and import from/to various formats.
+
+ - Create a template project from this one.
 
 **Interface for DatabaseDriver**
 @Database
@@ -77,6 +96,9 @@ res.sendInChunks(chunkedResponse, callback);
  - Performance tests
    - See the effect between versions.
  - Public method assertions
+ - Scripts to set environment variables (dev, prod)
+ - Deploy different environments remotely (start them locally, staging)
+ - Process from design to developing a new feature in this project
 
 ### JavaScript Linting and Conventions
 
@@ -90,8 +112,14 @@ res.sendInChunks(chunkedResponse, callback);
  - Database not available
  - ID in the URL path
  - Client app secret
+ - Rate limiting (429)
+ - Health status
 
 ## Questions
+
+**Software development**
+
+ - What does it mean: "don't be penny-wise, pound-foolish"?
 
 **@GoogleCloud**
 
@@ -101,14 +129,29 @@ res.sendInChunks(chunkedResponse, callback);
  - How to return updated entity to re-create the updated model?
    - To avoid merging and validation rules on the client.
  - How to detect a 404 (not found) when attempting an update?
+ - Why is there a token for paging? Isn't the order guaranteed by indexes?
+ - How to know how many entities are stored of one kind since no aggregation?
+ - How to set environment variables on App Engine?
 
 **@Web development**
 
  - Is URL path completely visible in a HTTPS request?
  - Is ID of object in URL a privacy concern?
+ - Can client applications process chunked responses?
+ - Does it make sense to reply 304 in an API server? Request with timestamp?
 
 **@Node.js**
 
  - Can keeping an input value only for error message purposes cause leaking?
    - Callback scope and clojure leaking...how to detect this?
+ - Why doesn't Node.js support CommonJS (ES6) modules?
+   - Module systems, caching, loading? Web vs. Node?
+ - How to use promise in Node.js? Or async/await?
+   - What does it imply for writing code? Performance? Limitations?
+   - Read methods in the caolin/async module.
 
+**Research by curiosity**
+
+ - Look how responses are dispatched (headers used) in Express.js
+ - How do `.env` files configure environment variables?
+ - How does the @google-cloud/datastore work? (HTTP/2, timeout, etc.)
