@@ -4,13 +4,39 @@ class DatastoreDatabaseDriver {
     /**
      * @param {object} options 
      * @param {function} options.ContextualError
-     * @param {function} options.Datastore
+     * @param {Datastore} options.datastore
+     * @param {DatastoreNoteTranslator} options.datastoreNoteTranslator
      */
     constructor(options) {
         this.ContextualError = options.ContextualError;
 
-        this.datastore = new options.Datastore();
+        this.datastore = options.datastore;
+        this.noteTranslator = options.datastoreNoteTranslator;
     }
+
+    /**
+     * @param {Note} note 
+     * @param {DatastoreDatabaseDriver~saveCallback} callback 
+     */
+    save(note, callback) {
+        const datastoreDocument = this.noteTranslator.format(note);
+        this.datastore.save(datastoreDocument, (err) => {
+            if (err) {
+                const contextError = new this.ContextualError(
+                    `DatastoreDatabaseDriver failed to save note ${note.toString()}.`,
+                    err
+                );
+                callback(contextError);
+                return;
+            }
+
+            callback(null);
+        });
+    }
+    /**
+     * @callback DatastoreDatabaseDriver~saveCallback
+     * @param {ContextualError} err
+     */
 
     /**
      * @param {ListRequest} listRequest
@@ -29,27 +55,70 @@ class DatastoreDatabaseDriver {
                 callback(contextError);
                 return;
             }
-            callback(null, entities.map((e) => this._parseNote(e)));
+            const notes = entities.map(e => this.noteTranslator.read(e));
+            callback(null, notes);
         });
     }
     /**
      * @callback DatastoreDatabaseDriver~getNotesCallback
-     * @param {Error|ContextualError} err
-     * @param {object[]} parsedNotes
+     * @param {ContextualError} err
+     * @param {Note[]} parsedNotes
      */
 
-    _parseNote(datastoreEntity) {
-        const meta = datastoreEntity[this.datastore.KEY];
-        const id = meta.id;
-        const type = meta.kind;
+    /**
+     * @param {number} id
+     * @param {DatastoreDatabaseDriver~getNoteCallback} callback 
+     */
+    getNote(id, callback) {
+        const key = this.datastore.key([NOTE_KIND, id]);
+        this.datastore.get(key, (err, entity) => {
+            if (err) {
+                const contextError = new this.ContextualError(
+                    `DatastoreDatabaseDriver failed to get note '${id}'.`,
+                    err
+                );
+                callback(contextError, null);
+                return;
+            }
+            
+            if (!entity) {
+                callback(null, null);
+                return;
+            }
 
-        return {
-            type,
-            id,
-            text: datastoreEntity["text"],
-            date: datastoreEntity["date"]
-        };
+            const note = this.noteTranslator.read(entity);
+            callback(null, note);
+        });
     }
+    /**
+     * @callback DatastoreDatabaseDriver~getNoteCallback
+     * @param {ContextualError} err
+     * @param {Note} note
+     */
+
+    /**
+     * @param {number} id
+     * @param {DatastoreDatabaseDriver~deleteNoteCallback} callback 
+     */
+    deleteNote(id, callback) {
+        const key = this.datastore.key([NOTE_KIND, id]);
+        this.datastore.delete(key, (err) => {
+            if (err) {
+                const contextError = new this.ContextualError(
+                    `DatastoreDatabaseDriver failed to delete note '${id}'.`,
+                    err
+                );
+                callback(contextError, null);
+                return;
+            }
+
+            callback(null);
+        });
+    }
+    /**
+     * @callback DatastoreDatabaseDriver~deleteNoteCallback
+     * @param {ContextualError} err
+     */
 }
 
 module.exports = DatastoreDatabaseDriver;

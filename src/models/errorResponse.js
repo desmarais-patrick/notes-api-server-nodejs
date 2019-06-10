@@ -1,5 +1,6 @@
 class ErrorResponse {
     constructor() {
+        this.contentType = "application/json;charset=UTF-8";
         this.statusCode = null;
         this.message = null;
     }
@@ -24,10 +25,7 @@ class ErrorResponse {
         return this;
     }
 
-    /**
-     * @returns {string} Formatted response for sending over the wire.
-     */
-    toString() {
+    get content() {
         const json = {
             type: "Error",
             code: this.statusCode,

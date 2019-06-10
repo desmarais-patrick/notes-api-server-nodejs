@@ -1,8 +1,18 @@
 class SuccessResponse {
     constructor() {
+        this.contentType = "application/json;charset=UTF-8";
         this.statusCode = 200;
         this.type = null;
         this.data = {};
+    }
+
+    /**
+     * @param {number} statusCode 
+     * @returns {SuccessResponse} For chaining.
+     */
+    setStatusCode(statusCode) {
+        this.statusCode = statusCode;
+        return this;
     }
 
     /**
@@ -22,14 +32,12 @@ class SuccessResponse {
      * @returns {SuccessResponse} For chaining.
      */
     setProperty(key, withValue) {
+        // TODO Add assertion: "type" cannot be the key!
         this.data[key] = withValue;
         return this;
     }
 
-    /**
-     * @returns {string} Formatted response for sending over the wire.
-     */
-    toString() {
+    get content() {
         const json = {
             type: this.type,
         };

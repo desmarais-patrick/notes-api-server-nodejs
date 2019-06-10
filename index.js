@@ -8,48 +8,85 @@ const {Datastore} = require("@google-cloud/datastore");
 // Application module dependencies.
 const ErrorController = require("./src/controllers/errorController");
 const NotesController = require("./src/controllers/notesController");
+const WelcomeController = require("./src/controllers/welcomeController");
 
-const ListRequest = require("./src/models/listRequest");
+const ContextualError = require("./src/models/contextualError");
+const Environment = require("./src/models/Environment");
 const ErrorResponse = require("./src/models/errorResponse");
+const ListRequest = require("./src/models/listRequest");
+const Note = require("./src/models/note");
 const SuccessResponse = require("./src/models/successResponse");
+const TextResponse = require("./src/models/textResponse");
+const ValidationResult = require("./src/models/validationResult");
 
-const ContextualError = require("./src/utilities/contextualError");
-
+const ApiJsonNoteTranslator = require("./src/apiJsonNoteTranslator");
 const DatastoreDatabaseDriver = require("./src/datastoreDatabaseDriver");
+const DatastoreNoteTranslator = require("./src/datastoreNoteTranslator");
+const NoteValidation = require("./src/noteValidation");
 
 const Router = require("./src/router");
 const Server = require("./src/server");
 
 // Variables.
 const port = process.env.PORT || 8080;
-const environment = process.env.NODE_ENV || "development";
+const environment = new Environment({NODE_ENV: process.env.NODE_ENV});
 
 // Initialization.
+const datastore = new Datastore();
+const datastoreNoteTranslator = new DatastoreNoteTranslator({
+    Note,
+
+    datastore
+});
 const databaseDriver = new DatastoreDatabaseDriver({
     ContextualError,
-    Datastore,
+
+    datastore,
+    datastoreNoteTranslator
 });
 
 const errorController = new ErrorController({
-    ErrorResponse
+    ErrorResponse,
+
+    environment
+});
+
+const apiJsonNoteTranslator = new ApiJsonNoteTranslator({
+    Note
+});
+const noteValidation = new NoteValidation({
+    ValidationResult
 });
 const notesController = new NotesController({
     ContextualError,
     ErrorResponse,
     SuccessResponse,
+
+    apiJsonNoteTranslator,
     environment,
-    databaseDriver
+    databaseDriver,
+    noteValidation
 });
+
+const welcomeController = new WelcomeController({
+    TextResponse
+});
+
 const router = new Router({
     URL,
+
+    ContextualError,
     ListRequest,
+
     errorController,
-    notesController
+    notesController,
+    welcomeController
 });
 
 // Server is ready to start.
 const server = new Server({
     HTTP,
+
     port,
     router
 });

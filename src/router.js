@@ -1,18 +1,27 @@
 class Router {
     /**
      * @param {object} options 
+     * 
      * @param {url} options.URL Node.js `url` module
+     * 
+     * @param {function} options.ContextualError
      * @param {function} options.ListRequest
+     * 
      * @param {ErrorController} options.errorController
      * @param {NotesController} options.notesController
+     * @param {WelcomeController} options.welcomeController
      */
     constructor(options) {
         this.URL = options.URL;
 
+        this.ContextualError = options.ContextualError;
         this.ListRequest = options.ListRequest;
 
         this.errorController = options.errorController;
         this.notesController = options.notesController;
+        this.welcomeController = options.welcomeController;
+
+        this.TEST_NOTE_ID_REGEXP = /^\/notes\/[0-9]+.*/;
     }
 
     /**
@@ -25,15 +34,38 @@ class Router {
      * request events.
      */
     route(incomingMessage, serverResponse) {
-        const urlPath = this._parseUrlPath(incomingMessage);
-        switch(urlPath) {
-            case "/":
+        const method = incomingMessage.method;
+        const pathname = this._parseUrlPathname(incomingMessage);
+
+        if (method === "GET") {
+            if (pathname === "/") {
+                // GET /
+                this._welcome(incomingMessage, serverResponse);
+            } else if (pathname === "/notes") {
+                // GET /notes
                 this._getNotesList(incomingMessage, serverResponse);
-                break;
-            default:
-                this._sendNotFound(incomingMessage, serverResponse);
-                break;
+            } else if (this.TEST_NOTE_ID_REGEXP.test(pathname)) {
+                // GET /notes/{id}
+                this._getNote(incomingMessage, serverResponse);
+            }
+        } else if (method === "POST" && pathname === "/notes") {
+            // POST /notes
+            this._createNote(incomingMessage, serverResponse);
+        } else if (method === "PUT" && this.TEST_NOTE_ID_REGEXP.test(pathname)) {
+            // PUT /notes/{id}
+            this._updateNote(incomingMessage, serverResponse);
+        } else if (method === "DELETE" && this.TEST_NOTE_ID_REGEXP.test(pathname)) {
+            // DELETE /notes/{id}
+            this._deleteNote(incomingMessage, serverResponse);
+        } else {
+            // Anything else...
+            this._handleNotFound(incomingMessage, serverResponse);
         }
+    }
+
+    _welcome(incomingMessage, serverResponse) {
+        this.welcomeController.welcome(
+            (response) => this._send(serverResponse, response));
     }
 
     _getNotesList(incomingMessage, serverResponse) {
@@ -43,7 +75,7 @@ class Router {
             .setOffset(offset)
             .setLimit(limit);
         this.notesController.list(request, 
-            (response) => this._sendJson(serverResponse, response));
+            (response) => this._send(serverResponse, response));
     }
 
     _parseQueryParameter(incomingMessage, parameterName, defaultValue) {
@@ -52,24 +84,118 @@ class Router {
         return value || defaultValue;
     }
 
-    _sendNotFound(incomingMessage, serverResponse) {
-        const pathToRequestResource = this._parseUrlPath(incomingMessage);
-        this.errorController.notFound(pathToRequestResource, 
-            (response) => this._sendJson(serverResponse, response));
+    _getNote(incomingMessage, serverResponse) {
+        const pathname = this._parseUrlPathname(incomingMessage);
+        const id = this._parseNoteId(pathname);
+        this.notesController.get(id, 
+            (response) => this._send(serverResponse, response));
     }
 
-    _parseUrlPath(incomingMessage) {
+    _createNote(incomingMessage, serverResponse) {
+        this._parseJsonBody(incomingMessage, serverResponse, 
+            (contextualError, jsonBody) => {
+                if (contextualError) {
+                    this.errorController.internalServerError(
+                        "error processing request for create note",
+                        contextualError,
+                        (response) => this._send(serverResponse, response));
+                    return;
+                }
+
+                this.notesController.create(jsonBody,
+                    (response) => this._send(serverResponse, response));
+            }
+        );
+    }
+
+    _updateNote(incomingMessage, serverResponse) {
+        const pathname = this._parseUrlPathname(incomingMessage);
+        const id = this._parseNoteId(pathname);
+        this._parseJsonBody(incomingMessage, serverResponse,
+            (contextualError, jsonBody) => {
+                if (contextualError) {
+                    this.errorController.internalServerError(
+                        "error processing request for update note",
+                        contextualError,
+                        (response) => this._send(serverResponse, response));
+                    return;
+                }
+
+                this.notesController.update(id, jsonBody,
+                    (response) => this._send(serverResponse, response));
+            }
+        );
+    }
+
+    _parseJsonBody(incomingMessage, serverResponse, callback) {
+        let stringBody = "";
+        incomingMessage.on("error", (err) => {
+            const contextualError = new this.ContextualError(
+                "[Router] Failed to read incoming message body.", 
+                err);
+            callback(contextualError);
+        });
+        incomingMessage.on("data", function (chunk) {
+            // TODO Add security on the maximum body size. ==> 400: Message is too long!
+            stringBody += chunk;
+        });
+        incomingMessage.on("end", () => {
+            if (stringBody.length === 0) {
+                this.errorController.badRequest(
+                    "empty body",
+                    null,
+                    (response) => this._send(serverResponse, response));
+                return;
+            }
+
+            let jsonBody;
+            try {
+                jsonBody = JSON.parse(stringBody);
+            } catch (err) {
+                const contextualError = new this.ContextualError(
+                    `[Router] Failed to parse JSON from incoming message body.\nReceived:\n${stringBody}`,
+                    err);
+                this.errorController.badRequest(
+                    "bad JSON",
+                    contextualError,
+                    (response) => this._send(serverResponse, response));
+                return;
+            }
+            callback(null, jsonBody);
+        });
+    }
+
+    _deleteNote(incomingMessage, serverResponse) {
+        const pathname = this._parseUrlPathname(incomingMessage);
+        const id = this._parseNoteId(pathname);
+        this.notesController.delete(id,
+            (response) => this._send(serverResponse, response));
+    }
+    
+    _parseNoteId(urlPathname) {
+        // "/notes/1234" --> "1234"
+        const id = urlPathname.substr("/notes/".length);
+        return id;
+    }
+
+    _handleNotFound(incomingMessage, serverResponse) {
+        const pathname = this._parseUrlPathname(incomingMessage);
+        const requestedResource = incomingMessage.method + " " + pathname;
+        this.errorController.notFound(requestedResource, 
+            (response) => this._send(serverResponse, response));
+    }
+
+    _parseUrlPathname(incomingMessage) {
         const url = this.URL.parse(incomingMessage.url);
         return url.pathname;
     }
 
-    _sendJson(serverResponse, response) {
+    _send(serverResponse, response) {
         serverResponse.statusCode = response.statusCode;
-        serverResponse.setHeader("Content-Type", "application/json");
+        serverResponse.setHeader("Content-Type", response.contentType);
 
-        const stringData = response.toString();
-        serverResponse.setHeader("Content-Length", 
-            Buffer.byteLength(stringData));
+        const stringData = response.content;
+        serverResponse.setHeader("Content-Length", Buffer.byteLength(stringData));
         serverResponse.end(stringData);
     }
 }
