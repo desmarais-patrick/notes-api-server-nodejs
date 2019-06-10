@@ -14,9 +14,13 @@ class WelcomeController {
         message += "Available endpoints:" + "\n";
         message += "\n";
         message += " - GET `/notes`" + "\n";
+        message += " - POST `/notes` {body}" + "\n";
+        message += " - PUT `/notes/{id}` {body}" + "\n";
+        message += " - GET `/notes/{id}`" + "\n";
+        message += " - DELETE `/notes/{id}`" + "\n";
         message += "\n";
         response.setContent(message);
-
+        
         setImmediate(() => {
             callback(response);
         });
