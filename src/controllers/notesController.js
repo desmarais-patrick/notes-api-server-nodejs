@@ -146,6 +146,11 @@ class NotesController {
         );
     }
 
+    /**
+     * @param {string} id 
+     * @param {object} apiJson 
+     * @param {NotesController~responseCallback} callback 
+     */
     update(id, apiJson, callback) {
         // Validate apiJson.
         const validationResultForId = this.noteValidation.validateId(id);
@@ -195,13 +200,41 @@ class NotesController {
         });
     }
 
+    /**
+     * @param {string} id
+     * @param {NotesController~responseCallback} callback 
+     */
     delete(id, callback) {
+        // Validate id.
+        const validationResultForId = this.noteValidation.validateId(id);
+        if (!validationResultForId.isValid) {
+            this._badRequest(validationResultForId, callback);
+            return;
+        }
+        const idAsNumber = parseInt(id, 10);
+
         // Delete note from datastore.
-        console.log("Received id", id);
-        const response = new this.ErrorResponse()
-                .setStatusCode(500)
-                .setMessage("notesController.delete [Not yet implemented]");
-        setImmediate(function () { callback(response) });
+        this.databaseDriver.deleteNote(idAsNumber, (err) => {
+            if (err) {
+                const longMessage = `NotesController failed to delete note '${idAsNumber.toString()}'`;
+                const contextError = new this.ContextualError(longMessage, err);
+                let message = "General error";
+                if (this.environment.isDev()) {
+                    message = message + ": " + contextError.toString();
+                }
+                const response = new this.ErrorResponse()
+                    .setStatusCode(500)
+                    .setMessage(message);
+                callback(response);
+                return;
+            }
+
+            const response = new this.SuccessResponse()
+                .setStatusCode(200)
+                .setType("NoteDeleted")
+                .setProperty("id", id);
+            callback(response);
+        });
     }
 
     /**

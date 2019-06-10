@@ -95,6 +95,30 @@ class DatastoreDatabaseDriver {
      * @param {ContextualError} err
      * @param {Note} note
      */
+
+    /**
+     * @param {number} id
+     * @param {DatastoreDatabaseDriver~deleteNoteCallback} callback 
+     */
+    deleteNote(id, callback) {
+        const key = this.datastore.key([NOTE_KIND, id]);
+        this.datastore.delete(key, (err) => {
+            if (err) {
+                const contextError = new this.ContextualError(
+                    `DatastoreDatabaseDriver failed to delete note '${id}'.`,
+                    err
+                );
+                callback(contextError, null);
+                return;
+            }
+
+            callback(null);
+        });
+    }
+    /**
+     * @callback DatastoreDatabaseDriver~deleteNoteCallback
+     * @param {ContextualError} err
+     */
 }
 
 module.exports = DatastoreDatabaseDriver;
