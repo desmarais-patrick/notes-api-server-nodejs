@@ -144,6 +144,25 @@ Visit `http://localhost:8080/` to start using the API.
 
 > Note that running the app locally, with the Google Cloud login and project setup, accesses your project's remote database in the cloud. 😉
 
+### Debugging
+
+Start server with:
+
+```
+npm run-script debug
+```
+
+Open Chrome browser and type in address bar:
+
+```
+chrome://inspect
+```
+
+Click on link to *Open dedicated DevTools for Node*.
+
+In the debug window that opens, you may set your breakpoints under the *Source* tab.
+
+
 ### Documentation
 
 No API documentation has been generated yet. 😕

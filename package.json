@@ -4,6 +4,7 @@
   "description": "API server for the Notes project",
   "main": "index.js",
   "scripts": {
+    "debug": "node --inspect index.js",
     "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
