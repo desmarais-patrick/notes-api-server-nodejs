@@ -48,6 +48,9 @@ class Router {
             } else if (this.TEST_NOTE_ID_REGEXP.test(pathname)) {
                 // GET /notes/{id}
                 this._getNote(incomingMessage, serverResponse);
+            } else {
+                // Any other GET...
+                this._handleNotFound(incomingMessage, serverResponse);
             }
         } else if (method === "POST" && pathname === "/notes") {
             // POST /notes
