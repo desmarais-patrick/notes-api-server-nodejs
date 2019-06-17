@@ -22,6 +22,7 @@ class Router {
         this.welcomeController = options.welcomeController;
 
         this.TEST_NOTE_ID_REGEXP = /^\/notes\/[0-9]+.*/;
+        this.ALLOWED_ORIGIN = "http://localhost:8000"; // TODO Move to config or environment variable.
     }
 
     /**
@@ -57,6 +58,9 @@ class Router {
         } else if (method === "DELETE" && this.TEST_NOTE_ID_REGEXP.test(pathname)) {
             // DELETE /notes/{id}
             this._deleteNote(incomingMessage, serverResponse);
+        } else if (method === "OPTIONS") {
+            // OPTIONS *
+            this._validateCrossOriginRequestSafety(incomingMessage, serverResponse);
         } else {
             // Anything else...
             this._handleNotFound(incomingMessage, serverResponse);
@@ -178,6 +182,27 @@ class Router {
         return id;
     }
 
+    _validateCrossOriginRequestSafety(incomingMessage, serverResponse) {
+        const requestedMethod = incomingMessage.headers["access-control-request-method"];
+        const requestedHeaders = incomingMessage.headers["access-control-request-headers"];
+
+        const allowedMethods = ["GET", "POST", "PUT", "DELETE", "OPTIONS"];
+        const allowedHeader = "Content-Type";
+        if (allowedMethods.indexOf(requestedMethod) === -1) {
+            serverResponse.statusCode = 401; // Unauthorized.
+        } else if (requestedHeaders && requestedHeaders !== allowedHeader) {
+            serverResponse.statusCode = 401; // Unauthorized.
+        } else {
+            serverResponse.statusCode = 204; // No content.
+        }
+
+        serverResponse.setHeader("Access-Control-Allow-Origin", this.ALLOWED_ORIGIN);
+        serverResponse.setHeader("Access-Control-Allow-Methods", allowedMethods.join(", "));
+        serverResponse.setHeader("Access-Control-Allow-Headers", allowedHeader);
+        serverResponse.setHeader("Access-Control-Max-Age", "86400"); // 24 hours.
+        serverResponse.end();
+    }
+
     _handleNotFound(incomingMessage, serverResponse) {
         const pathname = this._parseUrlPathname(incomingMessage);
         const requestedResource = incomingMessage.method + " " + pathname;
@@ -192,10 +217,13 @@ class Router {
 
     _send(serverResponse, response) {
         serverResponse.statusCode = response.statusCode;
+
+        serverResponse.setHeader("Access-Control-Allow-Origin", this.ALLOWED_ORIGIN);
         serverResponse.setHeader("Content-Type", response.contentType);
 
         const stringData = response.content;
         serverResponse.setHeader("Content-Length", Buffer.byteLength(stringData));
+
         serverResponse.end(stringData);
     }
 }
