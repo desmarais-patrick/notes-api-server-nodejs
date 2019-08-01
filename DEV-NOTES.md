@@ -99,6 +99,7 @@ Avoid being closed to using one infrastructure.
  - Scripts to set environment variables (dev, prod)
  - Deploy different environments remotely (start them locally, staging)
  - Process from design to developing a new feature in this project
+ - Add back `.js` to the required module to make it easier to read.
 
 ### JavaScript Linting and Conventions
 
@@ -155,3 +156,44 @@ Avoid being closed to using one infrastructure.
  - Look how responses are dispatched (headers used) in Express.js
  - How do `.env` files configure environment variables?
  - How does the @google-cloud/datastore work? (HTTP/2, timeout, etc.)
+
+## Google Cloud Articles
+
+  - Life of a Datastore Write
+
+  - An Overview of App Engine
+  - Structuring Web service in App Engine
+  - Communicating between your services
+  - Testing and deploying your application
+  - Understanding Data and File Storage
+  - Serving Static files
+  - How Requests are Routed
+
+  - Configuring Datastore Indexes
+  - How Entities and Indexes are Stored
+  - Index Selection and Advanced Search
+
+  - Securing Custom Domains with SSL
+  - Mapping Custom Domains
+  - Strict Transport Security
+
+  - Dispatch.yaml Configuration File
+  - Defining Runtime Settings
+  - Specifying dependencies
+
+  - Writing Application Logs
+  - Profiling Node.js code
+
+  - Express.static middleware (see options)
+
+  - Building scalable and resilient applications
+  - Microservices Architecture on Google App Engine
+  - Naming Developer Environments
+  - Contracts, Addressing, and APIs for Microservices
+  - Best Practices for Microservices Performance
+
+  - Implementing workflows on Google App Engine with Fantasm
+  - Optimizing Spring Framework for App Engine Applications
+  - Updating your Model's Schema
+  - Modeling Entity Relationships
+  - Best Practices for App Engine Memcache
