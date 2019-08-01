@@ -55,17 +55,22 @@ If you wish to deploy a version without making it active to receive traffic, say
 
 ---
 
-Optionally, if you want to deploy using the *Google Cloud SDK* on your machine, a useful command to login to GCP services is:
+Optionally, if you want to deploy the application using your machine,
+using the *Google Cloud SDK* installed on your machine,
+you may follow the same instructions.
+
+A useful command to login to GCP services is:
 
 ```
 gcloud auth application-default login
 ```
 
-The above commands work too.
-
 ### Environment considerations
 
-If you plan on creating different environments, for example *development* and *demo* and *prod*, the easiest way to manage those environments with the Google Cloud Datastore seems to create different projects.
+If you plan on creating different environments,
+for example *development* and *demo* and *prod*,
+one way to manage these environments is
+to create different Google Cloud projects.
 
 <!-- TODO Describe demo version with rate limiting (1000 requests or 100KB per hour) + reset every hour. -->
 
@@ -103,9 +108,9 @@ To upload, just switch arguments! 😉
 
 Checklist:
 
- - AppEngine app
- - Storage buckets
- - Datastore entities (Firestore with Datastore)
+ - [ ] AppEngine app
+ - [ ] Storage buckets
+ - [ ] Datastore entities (Firestore with Datastore)
 
 If you wish to remove older versions, you may visit the App Engine dashboard section in the *Google Cloud Console*.
 
@@ -117,10 +122,9 @@ If you wish to clean things completely, you may delete the Google Cloud project 
 
 ## Running locally
 
-To run this server locally, you will need the following pre-requisites:
+To run this server locally, you will need the following:
 
  - Node.js
- - [notes-db-server-datastore](/desmarais-patrick/notes-db-server-datastore) setup (local or remote)
 
 > Note: *Google Cloud Console* offers *Google Cloud Shell* which enables to edit and run code on a cloud instance. If you plan on using Shell, configurations will require a few tweaks to choose the correct datastore.
 
@@ -140,7 +144,8 @@ npm start
 
 Visit `http://localhost:8080/` to start using the API.
 
-> Note if the `PORT` environment variable is set on your system, replace `8080` by its value to start using the API.
+> Note if the `PORT` environment variable is set on your system,
+> replace `8080` in the above address.
 
 > Note that running the app locally, with the Google Cloud login and project setup, accesses your project's remote database in the cloud. 😉
 
@@ -167,7 +172,7 @@ In the debug window that opens, you may set your breakpoints under the *Source* 
 
 No API documentation has been generated yet. 😕
 
-<!-- TODO Open API documentation, such as Open-API user interface. -->
+<!-- TODO Open-API documentation, such as Open-API user interface. -->
 
 ### Using a local database
 
@@ -190,7 +195,7 @@ gcloud components install cloud-datastore-emulator
 gcloud beta emulators datastore start --data-dir=data
 ```
 
-Before running the API server with the local database, set the environment variables described by the following command [[1](#references)]:
+Before running the API server with the local database, set the environment variables described when running the following command [[1](#references)]:
 
 ```
 gcloud beta emulators datastore env-init --data-dir=data
