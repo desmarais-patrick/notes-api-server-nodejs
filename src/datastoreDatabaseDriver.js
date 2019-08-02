@@ -1,4 +1,5 @@
 const NOTE_KIND = "Note";
+const DATASTORE_NOTE_DATE_PROPERTY_NAME = "date";
 
 class DatastoreDatabaseDriver {
     /**
@@ -45,7 +46,10 @@ class DatastoreDatabaseDriver {
     getNotes(listRequest, callback) {
         const query = this.datastore.createQuery([NOTE_KIND])
             .limit(listRequest.limit)
-            .offset(listRequest.offset);
+            .offset(listRequest.offset)
+            .order(DATASTORE_NOTE_DATE_PROPERTY_NAME, {
+                descending: true,
+            });
         this.datastore.runQuery(query, (err, entities) => {
             if (err) {
                 const contextError = new this.ContextualError(
