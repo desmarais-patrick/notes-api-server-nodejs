@@ -44,7 +44,7 @@ class NotesController {
         const note = this.apiJsonNoteTranslator.read(apiJson);
 
         // Save to database.
-        this.databaseDriver.save(note, (err) => {
+        this.databaseDriver.save(note, (err, noteId) => {
             if (err) {
                 const contextError = new this.ContextualError(
                     "NotesController failed to create note", err);
@@ -62,6 +62,7 @@ class NotesController {
             const response = new this.SuccessResponse()
                 .setStatusCode(201)
                 .setType("NoteCreated")
+                .setProperty("id", noteId);
             callback(response);
         });
     }
@@ -177,7 +178,7 @@ class NotesController {
         note.setId(idAsNumber);
 
         // Save to database.
-        this.databaseDriver.save(note, (err) => {
+        this.databaseDriver.save(note, (err, noteId) => {
             if (err) {
                 const contextError = new this.ContextualError(
                     "NotesController failed to update note", err);
@@ -195,7 +196,7 @@ class NotesController {
             const response = new this.SuccessResponse()
                 .setStatusCode(200)
                 .setType("NoteUpdated")
-                .setProperty("id", id);
+                .setProperty("id", noteId);
             callback(response);
         });
     }

@@ -20,23 +20,30 @@ class DatastoreDatabaseDriver {
      * @param {DatastoreDatabaseDriver~saveCallback} callback 
      */
     save(note, callback) {
-        const datastoreDocument = this.noteTranslator.format(note);
-        this.datastore.save(datastoreDocument, (err) => {
+        const datastoreEntity = this.noteTranslator.format(note);
+        const entityKey = datastoreEntity.key;
+        this.datastore.save(datastoreEntity, (err) => {
+            // When update, the identifier is already set.
+            // When create, the identifier is filled upon response.
+            // See test file with datastore in this project.
+            const noteId = entityKey.id;
+
             if (err) {
                 const contextError = new this.ContextualError(
                     `DatastoreDatabaseDriver failed to save note ${note.toString()}.`,
                     err
                 );
-                callback(contextError);
+                callback(contextError, noteId);
                 return;
             }
 
-            callback(null);
+            callback(null, noteId);
         });
     }
     /**
      * @callback DatastoreDatabaseDriver~saveCallback
      * @param {ContextualError} err
+     * @param {string} noteId
      */
 
     /**
