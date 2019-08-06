@@ -21,8 +21,9 @@ class Router {
         this.notesController = options.notesController;
         this.welcomeController = options.welcomeController;
 
+        this.allowedOrigin = options.allowedOrigin;
+
         this.TEST_NOTE_ID_REGEXP = /^\/notes\/[0-9]+.*/;
-        this.ALLOWED_ORIGIN = "http://localhost:8000"; // TODO Move to config or environment variable.
     }
 
     /**
@@ -199,10 +200,14 @@ class Router {
             serverResponse.statusCode = 204; // No content.
         }
 
-        serverResponse.setHeader("Access-Control-Allow-Origin", this.ALLOWED_ORIGIN);
-        serverResponse.setHeader("Access-Control-Allow-Methods", allowedMethods.join(", "));
-        serverResponse.setHeader("Access-Control-Allow-Headers", allowedHeader);
-        serverResponse.setHeader("Access-Control-Max-Age", "86400"); // 24 hours.
+        serverResponse.setHeader("Access-Control-Allow-Origin",
+            this.allowedOrigin);
+        serverResponse.setHeader("Access-Control-Allow-Methods",
+            allowedMethods.join(", "));
+        serverResponse.setHeader("Access-Control-Allow-Headers",
+            allowedHeader);
+        serverResponse.setHeader("Access-Control-Max-Age",
+            "86400"); // 24 hours.
         serverResponse.end();
     }
 
@@ -221,7 +226,8 @@ class Router {
     _send(serverResponse, response) {
         serverResponse.statusCode = response.statusCode;
 
-        serverResponse.setHeader("Access-Control-Allow-Origin", this.ALLOWED_ORIGIN);
+        serverResponse.setHeader("Access-Control-Allow-Origin",
+            this.allowedOrigin);
         serverResponse.setHeader("Content-Type", response.contentType);
 
         const stringData = response.content;

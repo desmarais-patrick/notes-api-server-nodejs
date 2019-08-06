@@ -23,6 +23,10 @@ class Environment {
     isDev() {
         return (this.mode === Environment.MODES.development);
     }
+
+    toString() {
+        return this.mode;
+    }
 }
 Environment.MODES = {
     development: "development",

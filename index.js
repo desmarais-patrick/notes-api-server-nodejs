@@ -6,30 +6,34 @@ const URL = require("url");
 const {Datastore} = require("@google-cloud/datastore");
 
 // Application module dependencies.
-const ErrorController = require("./src/controllers/errorController");
-const NotesController = require("./src/controllers/notesController");
-const WelcomeController = require("./src/controllers/welcomeController");
+const ErrorController = require("./src/controllers/errorController.js");
+const NotesController = require("./src/controllers/notesController.js");
+const WelcomeController = require("./src/controllers/welcomeController.js");
 
-const ContextualError = require("./src/models/contextualError");
-const Environment = require("./src/models/Environment");
-const ErrorResponse = require("./src/models/errorResponse");
-const ListRequest = require("./src/models/listRequest");
-const Note = require("./src/models/note");
-const SuccessResponse = require("./src/models/successResponse");
-const TextResponse = require("./src/models/textResponse");
-const ValidationResult = require("./src/models/validationResult");
+const ContextualError = require("./src/models/contextualError.js");
+const Environment = require("./src/models/environment.js");
+const ErrorResponse = require("./src/models/errorResponse.js");
+const ListRequest = require("./src/models/listRequest.js");
+const Note = require("./src/models/note.js");
+const SuccessResponse = require("./src/models/successResponse.js");
+const TextResponse = require("./src/models/textResponse.js");
+const ValidationResult = require("./src/models/validationResult.js");
 
-const ApiJsonNoteTranslator = require("./src/apiJsonNoteTranslator");
-const DatastoreDatabaseDriver = require("./src/datastoreDatabaseDriver");
-const DatastoreNoteTranslator = require("./src/datastoreNoteTranslator");
-const NoteValidation = require("./src/noteValidation");
+const ApiJsonNoteTranslator = require("./src/apiJsonNoteTranslator.js");
+const DatastoreDatabaseDriver = require("./src/datastoreDatabaseDriver.js");
+const DatastoreNoteTranslator = require("./src/datastoreNoteTranslator.js");
+const NoteValidation = require("./src/noteValidation.js");
 
-const Router = require("./src/router");
-const Server = require("./src/server");
+const Router = require("./src/router.js");
+const Server = require("./src/server.js");
+
+const config = require("./config.js");
 
 // Variables.
 const port = process.env.PORT || 8080;
 const environment = new Environment({NODE_ENV: process.env.NODE_ENV});
+const allowedOrigin = environment.isDev() ? config.devLocal.allowedOrigin : 
+    config.prod.allowedOrigin;
 
 // Initialization.
 const datastore = new Datastore();
@@ -80,7 +84,9 @@ const router = new Router({
 
     errorController,
     notesController,
-    welcomeController
+    welcomeController,
+
+    allowedOrigin
 });
 
 // Server is ready to start.
@@ -96,5 +102,6 @@ server.addErrorHandler(function (err) {
     console.error(contextError.toString());
 });
 server.start(function () {
-    console.log(`Application is running at: http://localhost:${port}/`);
+    console.log(`Application is running at: http://localhost:${port}/`,
+        `[Mode: ${environment}]`);
 });
