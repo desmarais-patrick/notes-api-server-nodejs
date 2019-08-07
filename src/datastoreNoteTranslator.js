@@ -51,7 +51,10 @@ class DatastoreNoteTranslator {
         var text = this._formatDataProperty(
             DatastoreNoteTranslator.DATASTORE_KIND_PROPERTIES.TEXT,
             note.text);
-        return [date, text];
+        var user = this._formatDataProperty(
+            DatastoreNoteTranslator.DATASTORE_KIND_PROPERTIES.USER,
+            note.user);
+        return [date, text, user];
     }
 
     _formatDataProperty(propertyName, noteValue) {
@@ -73,11 +76,14 @@ class DatastoreNoteTranslator {
             DatastoreNoteTranslator.DATASTORE_KIND_PROPERTIES.DATE);
         const text = this._readProperty(datastoreEntity,
             DatastoreNoteTranslator.DATASTORE_KIND_PROPERTIES.TEXT);
+        const user = this._readProperty(datastoreEntity,
+            DatastoreNoteTranslator.DATASTORE_KIND_PROPERTIES.USER);
 
         return new this.Note()
             .setId(id)
             .setDate(date)
-            .setText(text);
+            .setText(text)
+            .setUser(user);
     }
 
     _readId(datastoreEntity) {
@@ -109,10 +115,12 @@ DatastoreNoteTranslator.TRANSLATOR_ID = "datastore-note-translator";
 DatastoreNoteTranslator.DATASTORE_KIND = "Note";
 DatastoreNoteTranslator.DATASTORE_KIND_PROPERTIES = {
     DATE: "date",
-    TEXT: "text"
+    TEXT: "text",
+    USER: "user"
 };
 DatastoreNoteTranslator.DATASTORE_KIND_INDEXED_PROPERTIES = [
-    DatastoreNoteTranslator.DATASTORE_KIND_PROPERTIES.DATE
+    DatastoreNoteTranslator.DATASTORE_KIND_PROPERTIES.DATE,
+    DatastoreNoteTranslator.DATASTORE_KIND_PROPERTIES.USER
 ];
 
 module.exports = DatastoreNoteTranslator;
