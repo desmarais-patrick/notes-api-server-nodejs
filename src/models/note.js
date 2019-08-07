@@ -3,6 +3,7 @@ class Note {
         this.id = null;
         this.date = null;
         this.text = "";
+        this.user = null;
     }
 
     /**
@@ -33,6 +34,15 @@ class Note {
     }
 
     /**
+     * @param {string} user
+     * @returns {Note} For chaining.
+     */
+    setUser(user) {
+        this.user = user;
+        return this;
+    }
+
+    /**
      * @returns {string}
      */
     toString() {
@@ -57,7 +67,14 @@ class Note {
             text = this.text + "";
         }
 
-        return `Note (id=${id}; date=${date}; text=${text})`
+        let user;
+        if (typeof this.user === "string" && this.user.length > 7) {
+            user = this.user.substring(0, 7) + "...";
+        } else {
+            user = this.user + "";
+        }
+
+        return `Note (id=${id}; date=${date}; text=${text}, user=${user})`
     }
 }
 
