@@ -1,5 +1,6 @@
 const NOTE_KIND = "Note";
 const DATASTORE_NOTE_DATE_PROPERTY_NAME = "date";
+const DATASTORE_NOTE_USER_PROPERTY_NAME = "user";
 
 class DatastoreDatabaseDriver {
     /**
@@ -25,14 +26,13 @@ class DatastoreDatabaseDriver {
         this.datastore.save(datastoreEntity, (err) => {
             // When update, the identifier is already set.
             // When create, the identifier is filled upon response.
-            // See test file with datastore in this project.
+            // See test file with datastore in this project to see how it works.
             const noteId = entityKey.id;
 
             if (err) {
-                const contextError = new this.ContextualError(
-                    `DatastoreDatabaseDriver failed to save note ${note.toString()}.`,
-                    err
-                );
+                const message = ["[DatastoreDatabaseDriver]",
+                    "Failed to save note", note.toString()].join(" ");
+                const contextError = new this.ContextualError(message, err);
                 callback(contextError, noteId);
                 return;
             }
@@ -47,13 +47,14 @@ class DatastoreDatabaseDriver {
      */
 
     /**
-     * @param {ListRequest} listRequest
+     * @param {GetNotesListRequest} request
      * @param {DatastoreDatabaseDriver~getNotesCallback} callback 
      */
-    getNotes(listRequest, callback) {
+    getNotes(request, callback) {
         const query = this.datastore.createQuery([NOTE_KIND])
-            .limit(listRequest.limit)
-            .offset(listRequest.offset)
+            .filter(DATASTORE_NOTE_USER_PROPERTY_NAME, "=", request.user)
+            .limit(request.limit)
+            .offset(request.offset)
             .order(DATASTORE_NOTE_DATE_PROPERTY_NAME, {
                 descending: true,
             });
@@ -78,9 +79,10 @@ class DatastoreDatabaseDriver {
 
     /**
      * @param {number} id
+     * @param {string} user
      * @param {DatastoreDatabaseDriver~getNoteCallback} callback 
      */
-    getNote(id, callback) {
+    getNote(id, user, callback) {
         const key = this.datastore.key([NOTE_KIND, id]);
         this.datastore.get(key, (err, entity) => {
             if (err) {
@@ -98,6 +100,12 @@ class DatastoreDatabaseDriver {
             }
 
             const note = this.noteTranslator.read(entity);
+            if (note.user !== user) {
+                // Wrong user! This note doesn't belong to the request user.
+                callback(null, null);
+                return;
+            }
+
             callback(null, note);
         });
     }

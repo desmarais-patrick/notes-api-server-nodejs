@@ -19,19 +19,22 @@ class ApiJsonNoteTranslator {
             id: note.id,
             // Properties.
             date,
-            text: note.text
+            text: note.text,
+            user: note.user
         }
     }
 
     /**
      * @param {object} apiJson 
+     * @param {string} user 
      * @returns {Note}
      */
-    read(apiJson) {
+    read(apiJson, user) {
         const date = new Date(apiJson.date);
         return new this.Note()
             .setDate(date)
-            .setText(apiJson.text);
+            .setText(apiJson.text)
+            .setUser(user);
     }
 }
 ApiJsonNoteTranslator.TRANSLATOR_ID = "api-json-note-translator";

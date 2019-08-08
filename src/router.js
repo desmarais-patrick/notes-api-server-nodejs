@@ -5,7 +5,7 @@ class Router {
      * @param {url} options.URL Node.js `url` module
      * 
      * @param {function} options.ContextualError
-     * @param {function} options.ListRequest
+     * @param {function} options.GetNotesListRequest
      * 
      * @param {ErrorController} options.errorController
      * @param {NotesController} options.notesController
@@ -15,7 +15,7 @@ class Router {
         this.URL = options.URL;
 
         this.ContextualError = options.ContextualError;
-        this.ListRequest = options.ListRequest;
+        this.GetNotesListRequest = options.GetNotesListRequest;
 
         this.errorController = options.errorController;
         this.notesController = options.notesController;
@@ -23,6 +23,7 @@ class Router {
 
         this.allowedOrigin = options.allowedOrigin;
 
+        this.USER_HEADER_NAME = "notes-user";
         this.TEST_NOTE_ID_REGEXP = /^\/notes\/[0-9]+.*/;
     }
 
@@ -77,11 +78,10 @@ class Router {
     }
 
     _getNotesList(incomingMessage, serverResponse) {
-        const offset = this._parseQueryParameter(incomingMessage, "offset", 0);
         const limit = this._parseQueryParameter(incomingMessage, "limit", 10);
-        const request = new this.ListRequest()
-            .setOffset(offset)
-            .setLimit(limit);
+        const offset = this._parseQueryParameter(incomingMessage, "offset", 0);
+        const user = incomingMessage.headers[this.USER_HEADER_NAME];
+        const request = new this.GetNotesListRequest(limit, offset, user);
         this.notesController.list(request, 
             (response) => this._send(serverResponse, response));
     }
@@ -93,13 +93,15 @@ class Router {
     }
 
     _getNote(incomingMessage, serverResponse) {
+        const user = incomingMessage.headers[this.USER_HEADER_NAME];
         const pathname = this._parseUrlPathname(incomingMessage);
         const id = this._parseNoteId(pathname);
-        this.notesController.get(id, 
+        this.notesController.get(id, user, 
             (response) => this._send(serverResponse, response));
     }
 
     _createNote(incomingMessage, serverResponse) {
+        const user = incomingMessage.headers[this.USER_HEADER_NAME];
         this._parseJsonBody(incomingMessage, serverResponse, 
             (contextualError, jsonBody) => {
                 if (contextualError) {
@@ -110,13 +112,14 @@ class Router {
                     return;
                 }
 
-                this.notesController.create(jsonBody,
+                this.notesController.create(jsonBody, user,
                     (response) => this._send(serverResponse, response));
             }
         );
     }
 
     _updateNote(incomingMessage, serverResponse) {
+        const user = incomingMessage.headers[this.USER_HEADER_NAME];
         const pathname = this._parseUrlPathname(incomingMessage);
         const id = this._parseNoteId(pathname);
         this._parseJsonBody(incomingMessage, serverResponse,
@@ -129,7 +132,7 @@ class Router {
                     return;
                 }
 
-                this.notesController.update(id, jsonBody,
+                this.notesController.update(id, user, jsonBody,
                     (response) => this._send(serverResponse, response));
             }
         );
@@ -174,9 +177,10 @@ class Router {
     }
 
     _deleteNote(incomingMessage, serverResponse) {
+        const user = incomingMessage.headers[this.USER_HEADER_NAME];
         const pathname = this._parseUrlPathname(incomingMessage);
         const id = this._parseNoteId(pathname);
-        this.notesController.delete(id,
+        this.notesController.delete(id, user,
             (response) => this._send(serverResponse, response));
     }
     

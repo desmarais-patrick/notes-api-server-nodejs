@@ -13,7 +13,7 @@ const WelcomeController = require("./src/controllers/welcomeController.js");
 const ContextualError = require("./src/models/contextualError.js");
 const Environment = require("./src/models/environment.js");
 const ErrorResponse = require("./src/models/errorResponse.js");
-const ListRequest = require("./src/models/listRequest.js");
+const GetNotesListRequest = require("./src/models/getNotesListRequest.js");
 const Note = require("./src/models/note.js");
 const SuccessResponse = require("./src/models/successResponse.js");
 const TextResponse = require("./src/models/textResponse.js");
@@ -22,7 +22,10 @@ const ValidationResult = require("./src/models/validationResult.js");
 const ApiJsonNoteTranslator = require("./src/apiJsonNoteTranslator.js");
 const DatastoreDatabaseDriver = require("./src/datastoreDatabaseDriver.js");
 const DatastoreNoteTranslator = require("./src/datastoreNoteTranslator.js");
+
 const NoteValidation = require("./src/noteValidation.js");
+const ParameterValidation = require("./src/parameterValidation.js");
+const UserValidation = require("./src/userValidation.js");
 
 const Router = require("./src/router.js");
 const Server = require("./src/server.js");
@@ -58,9 +61,17 @@ const errorController = new ErrorController({
 const apiJsonNoteTranslator = new ApiJsonNoteTranslator({
     Note
 });
+
 const noteValidation = new NoteValidation({
     ValidationResult
 });
+const paramValidation = new ParameterValidation({
+    ValidationResult
+});
+const userValidation = new UserValidation({
+    ValidationResult
+});
+
 const notesController = new NotesController({
     ContextualError,
     ErrorResponse,
@@ -69,7 +80,10 @@ const notesController = new NotesController({
     apiJsonNoteTranslator,
     environment,
     databaseDriver,
-    noteValidation
+
+    noteValidation,
+    paramValidation,
+    userValidation
 });
 
 const welcomeController = new WelcomeController({
@@ -80,7 +94,7 @@ const router = new Router({
     URL,
 
     ContextualError,
-    ListRequest,
+    GetNotesListRequest,
 
     errorController,
     notesController,

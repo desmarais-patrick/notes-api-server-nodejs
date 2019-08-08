@@ -20,28 +20,37 @@ class NotesController {
         this.environment = options.environment;
         this.databaseDriver = options.databaseDriver;
         this.noteValidation = options.noteValidation;
+        this.paramValidation = options.paramValidation;
+        this.userValidation = options.userValidation;
     }
 
     /**
      * @param {object} apiJson 
+     * @param {string} user 
      * @param {NotesController~responseCallback} callback 
      */
-    create(apiJson, callback) {
+    create(apiJson, user, callback) {
         // Validate input.
         const validationResultForDate = this.noteValidation.validateDate(apiJson.date);
         if (!validationResultForDate.isValid) {
-            this._badRequest(validationResultForDate, callback);
+            this._badRequest(validationResultForDate.reason, callback);
             return;
         }
 
         const validationResultForText = this.noteValidation.validateText(apiJson.text);
         if (!validationResultForText.isValid) {
-            this._badRequest(validationResultForText, callback);
+            this._badRequest(validationResultForText.reason, callback);
+            return;
+        }
+
+        const validationResultForUser = this.userValidation.validate(user);
+        if (!validationResultForUser.isValid) {
+            this._badRequest(validationResultForUser.reason, callback);
             return;
         }
 
         // Translate to Note.
-        const note = this.apiJsonNoteTranslator.read(apiJson);
+        const note = this.apiJsonNoteTranslator.read(apiJson, user);
 
         // Save to database.
         this.databaseDriver.save(note, (err, noteId) => {
@@ -68,11 +77,34 @@ class NotesController {
     }
 
     /**
-     * @param {ListRequest} listRequest 
+     * @param {GetNotesListRequest} request
      * @param {NotesController~responseCallback} callback 
      */
-    list(listRequest, callback) {
-        this.databaseDriver.getNotes(listRequest,
+    list(request, callback) {
+        let param, user, validationResult;
+
+        param = request.limit;
+        validationResult = this.paramValidation.validateLimit(param);
+        if (!validationResult.isValid) {
+            this._badRequest(validationResult.reason, callback);
+            return;
+        }
+
+        param = request.offset;
+        validationResult = this.paramValidation.validateOffset(param);
+        if (!validationResult.isValid) {
+            this._badRequest(validationResult.reason, callback);
+            return;
+        }
+
+        user = request.user;
+        validationResult = this.userValidation.validate(user);
+        if (!validationResult.isValid) {
+            this._badRequest(validationResult.reason, callback);
+            return;
+        }
+
+        this.databaseDriver.getNotes(request,
             (err, notes) => {
                 if (err) {
                     const contextError = new this.ContextualError(
@@ -91,8 +123,8 @@ class NotesController {
                 const apiJsonNotes = notes.map(n => this.apiJsonNoteTranslator.format(n));
                 const response = new this.SuccessResponse()
                     .setType("Collection")
-                    .setProperty("limit", listRequest.limit)
-                    .setProperty("offset", listRequest.offset)
+                    .setProperty("limit", request.limit)
+                    .setProperty("offset", request.offset)
                     .setProperty("items", apiJsonNotes);
                 callback(response);
             }
@@ -101,19 +133,28 @@ class NotesController {
 
     /**
      * @param {number} id 
+     * @param {string} user 
      * @param {NotesController~responseCallback} callback 
      */
-    get(id, callback) {
-        // Validate id.
-        const validationResult = this.noteValidation.validateId(id);
+    get(id, user, callback) {
+        // Validation.
+        let validationResult;
+
+        validationResult = this.noteValidation.validateId(id);
         if (!validationResult.isValid) {
-            this._badRequest(validationResult, callback);
+            this._badRequest(validationResult.reason, callback);
             return;
         }
         const idAsNumber = parseInt(id, 10);
 
+        validationResult = this.userValidation.validate(user);
+        if (!validationResult.isValid) {
+            this._badRequest(validationResult.reason, callback);
+            return;
+        }
+
         // Fetch note from database!
-        this.databaseDriver.getNote(idAsNumber, 
+        this.databaseDriver.getNote(idAsNumber, user, 
             (err, note) => {
                 if (err) {
                     const contextError = new this.ContextualError(
@@ -152,30 +193,39 @@ class NotesController {
      * @param {object} apiJson 
      * @param {NotesController~responseCallback} callback 
      */
-    update(id, apiJson, callback) {
-        // Validate apiJson.
-        const validationResultForId = this.noteValidation.validateId(id);
-        if (!validationResultForId.isValid) {
-            this._badRequest(validationResultForId, callback);
+    update(id, user, apiJson, callback) {
+        // Validation.
+        let validationResult;
+
+        validationResult = this.noteValidation.validateId(id);
+        if (!validationResult.isValid) {
+            this._badRequest(validationResult.reason, callback);
             return;
         }
         const idAsNumber = parseInt(id, 10);
 
-        const validationResultForDate = this.noteValidation.validateDate(apiJson.date);
-        if (!validationResultForDate.isValid) {
-            this._badRequest(validationResultForDate, callback);
+        validationResult = this.userValidation.validate(user);
+        if (!validationResult.isValid) {
+            this._badRequest(validationResult.reason, callback);
             return;
         }
 
-        const validationResultForText = this.noteValidation.validateText(apiJson.text);
-        if (!validationResultForText.isValid) {
-            this._badRequest(validationResultForText, callback);
+        validationResult = this.noteValidation.validateDate(apiJson.date);
+        if (!validationResult.isValid) {
+            this._badRequest(validationResult.reason, callback);
+            return;
+        }
+
+        validationResult = this.noteValidation.validateText(apiJson.text);
+        if (!validationResult.isValid) {
+            this._badRequest(validationResult.reason, callback);
             return;
         }
 
         // Translate to Note.
-        const note = this.apiJsonNoteTranslator.read(apiJson);
+        const note = this.apiJsonNoteTranslator.read(apiJson, user);
         note.setId(idAsNumber);
+        // TODO Validate if note exists before updating it.
 
         // Save to database.
         this.databaseDriver.save(note, (err, noteId) => {
@@ -205,37 +255,85 @@ class NotesController {
      * @param {string} id
      * @param {NotesController~responseCallback} callback 
      */
-    delete(id, callback) {
-        // Validate id.
-        const validationResultForId = this.noteValidation.validateId(id);
-        if (!validationResultForId.isValid) {
-            this._badRequest(validationResultForId, callback);
+    delete(id, user, callback) {
+        // Validation.
+        let validationResult;
+
+        validationResult = this.noteValidation.validateId(id);
+        if (!validationResult.isValid) {
+            this._badRequest(validationResult.reason, callback);
             return;
         }
         const idAsNumber = parseInt(id, 10);
 
-        // Delete note from datastore.
-        this.databaseDriver.deleteNote(idAsNumber, (err) => {
-            if (err) {
-                const longMessage = `NotesController failed to delete note '${idAsNumber.toString()}'`;
-                const contextError = new this.ContextualError(longMessage, err);
-                let message = "General error";
-                if (this.environment.isDev()) {
-                    message = message + ": " + contextError.toString();
-                }
-                const response = new this.ErrorResponse()
-                    .setStatusCode(500)
-                    .setMessage(message);
-                callback(response);
-                return;
-            }
+        validationResult = this.userValidation.validate(user);
+        if (!validationResult.isValid) {
+            this._badRequest(validationResult.reason, callback);
+            return;
+        }
 
-            const response = new this.SuccessResponse()
-                .setStatusCode(200)
-                .setType("NoteDeleted")
-                .setProperty("id", id);
-            callback(response);
-        });
+        // Make sure note belongs to this user.
+        this.databaseDriver.getNote(idAsNumber, user, 
+            (err, note) => {
+                if (err) {
+                    const contextMessage = [
+                        "NotesController",
+                        "failed to validate existence of note with id",
+                        idAsNumber,
+                        "for user", user
+                    ].join(" ");
+                    const contextError = new this.ContextualError(
+                        contextMessage, err);
+                
+                    let message = "General error";
+                    if (this.environment.isDev()) {
+                        message = message + ": " + contextError.toString();
+                    }
+                    const response = new this.ErrorResponse()
+                        .setStatusCode(500)
+                        .setMessage(message);
+                    callback(response);
+                    return;
+                }
+
+                if (!note) {
+                    const response = new this.ErrorResponse()
+                        .setStatusCode(404)
+                        .setMessage(`Note '${id}' cannot be found.`);
+                    callback(response);
+                    return;
+                }
+
+                // Delete note from datastore.
+                this.databaseDriver.deleteNote(idAsNumber, (err) => {
+                    if (err) {
+                        const longMessage = [
+                            "NotesController",
+                            "failed to delete note with id", idAsNumber,
+                            "for user", user
+                        ].join(" ");
+                        const contextError = new this.ContextualError(
+                            longMessage, err);
+
+                        let message = "General error";
+                        if (this.environment.isDev()) {
+                            message = message + ": " + contextError.toString();
+                        }
+                        const response = new this.ErrorResponse()
+                            .setStatusCode(500)
+                            .setMessage(message);
+                        callback(response);
+                        return;
+                    }
+        
+                    const response = new this.SuccessResponse()
+                        .setStatusCode(200)
+                        .setType("NoteDeleted")
+                        .setProperty("id", idAsNumber);
+                    callback(response);
+                });
+            }
+        );
     }
 
     /**
@@ -243,10 +341,10 @@ class NotesController {
      * @param {SuccessResponse|ErrorResponse} response
      */
 
-    _badRequest(validationResult, callback) {
+    _badRequest(reason, callback) {
         const response = new this.ErrorResponse()
             .setStatusCode(400)
-            .setMessage(`Bad request: ${validationResult.reason}`);
+            .setMessage(`Bad request: ${reason}`);
         setImmediate(function () { callback(response) });
     }
 }
