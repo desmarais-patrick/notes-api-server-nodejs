@@ -195,10 +195,10 @@ class Router {
         const requestedHeaders = incomingMessage.headers["access-control-request-headers"];
 
         const allowedMethods = ["GET", "POST", "PUT", "DELETE", "OPTIONS"];
-        const allowedHeader = "Content-Type";
+        const allowedHeaders = ["content-type", "notes-user"];
         if (allowedMethods.indexOf(requestedMethod) === -1) {
             serverResponse.statusCode = 401; // Unauthorized.
-        } else if (requestedHeaders && requestedHeaders !== allowedHeader) {
+        } else if (!this._areRequestedHeadersAllowed(requestedHeaders, allowedHeaders)) {
             serverResponse.statusCode = 401; // Unauthorized.
         } else {
             serverResponse.statusCode = 204; // No content.
@@ -207,12 +207,32 @@ class Router {
         serverResponse.setHeader("Access-Control-Allow-Origin",
             this.allowedOrigin);
         serverResponse.setHeader("Access-Control-Allow-Methods",
-            allowedMethods.join(", "));
+            allowedMethods.join(","));
         serverResponse.setHeader("Access-Control-Allow-Headers",
-            allowedHeader);
+            allowedHeaders.join(","));
         serverResponse.setHeader("Access-Control-Max-Age",
             "86400"); // 24 hours.
         serverResponse.end();
+    }
+
+    _areRequestedHeadersAllowed(requestedHeaders, allowedHeaders) {
+        if (typeof requestedHeaders === "undefined") {
+            return true;
+        }
+        
+        if (typeof requestedHeaders === "string" && requestedHeaders.length === 0) {
+            return true;
+        }
+
+        let isAllowed = true;
+        let reqHeadersAsArray = requestedHeaders.split(",");
+        reqHeadersAsArray.forEach(function (header) {
+            if (allowedHeaders.indexOf(header) === -1) {
+                isAllowed = false;
+            }
+        });
+
+        return isAllowed;
     }
 
     _handleNotFound(incomingMessage, serverResponse) {
