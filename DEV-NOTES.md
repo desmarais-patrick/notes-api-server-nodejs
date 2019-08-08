@@ -93,6 +93,13 @@ Avoid being closed to using one infrastructure.
  - To be able to do updates on the client and server
  - To remember to be retro-compatible
 
+**Content types for create requests**
+@DataModel, @Router
+
+ - Do something with content type.
+ - What happens if ASCII characters are sent instead of UTF-8?
+
+
 
 ## Checklist
 
