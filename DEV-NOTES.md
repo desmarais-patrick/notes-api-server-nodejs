@@ -87,6 +87,13 @@ Avoid being closed to using one infrastructure.
    - Maybe a document database isn't the way then!
  - Is an ID relevant?
 
+**Version API**
+@Router
+
+ - To be able to do updates on the client and server
+ - To remember to be retro-compatible
+
+
 ## Checklist
 
  - API documentation at the root (welcomeController)

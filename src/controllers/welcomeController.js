@@ -9,16 +9,19 @@ class WelcomeController {
     welcome(callback) {
         const response = new this.TextResponse()
 
-        let message = "Welcome to the Notes API! 📔" + "\n";
-        message += "\n";
-        message += "Available endpoints:" + "\n";
-        message += "\n";
-        message += " - GET `/notes`" + "\n";
-        message += " - POST `/notes` {body}" + "\n";
-        message += " - PUT `/notes/{id}` {body}" + "\n";
-        message += " - GET `/notes/{id}`" + "\n";
-        message += " - DELETE `/notes/{id}`" + "\n";
-        message += "\n";
+        let message = [
+            "Welcome to the Notes API! 📔", "\n",
+            "\n",
+            "Available endpoints:", "\n",
+            "\n",
+            " - GET `/notes`", "\n",
+            " - POST `/notes` {body}", "\n",
+            " - PUT `/notes/{id}` {body}", "\n",
+            " - GET `/notes/{id}`", "\n",
+            " - DELETE `/notes/{id}`", "\n",
+            "\n",
+            "Version: 0.1.0", "\n"
+        ].join("");
         response.setContent(message);
         
         setImmediate(() => {
