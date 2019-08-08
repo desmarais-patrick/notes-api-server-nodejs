@@ -20,7 +20,7 @@ class WelcomeController {
             " - GET `/notes/{id}`", "\n",
             " - DELETE `/notes/{id}`", "\n",
             "\n",
-            "Version: 0.1.0", "\n"
+            "Version: 0.1.1", "\n"
         ].join("");
         response.setContent(message);
         
