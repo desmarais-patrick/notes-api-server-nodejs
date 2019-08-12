@@ -99,6 +99,12 @@ Avoid being closed to using one infrastructure.
  - Do something with content type.
  - What happens if ASCII characters are sent instead of UTF-8?
 
+**Logging**
+@Architecture
+
+ - Troubleshooting errors on the remote server is hard without logs.
+ - The current console logging isn't shown on Google Cloud.
+ - A separate logging strategy would help.
 
 
 ## Checklist

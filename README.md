@@ -26,22 +26,22 @@ Optionally, you may install *Node.js* and *Google Cloud SDK* locally to run comm
 
 ### Steps to deploy
 
-First, open the *Google Cloud Shell* from the *Google Cloud Console* shell icon.
+(1) First, open the *Google Cloud Shell* from the *Google Cloud Console* shell icon.
 
-Then, make sure you're on the right project.
+(2) Then, make sure you're on the right project.
 Here are some useful Shell commands:
 
  * `gcloud auth list`, to see which account is active.
  * `gcloud config list project`, to see which project is current.
  * `gcloud config set project <PROJECT_ID>`, to set current project.
 
-Clone this project to your Shell instance:
+(3) Clone this project to your Shell instance:
 
 ```
 git clone https://github.com/desmarais-patrick/notes-api-server-nodejs.git
 ```
 
-Deploy the application:
+(4) Deploy the application:
 
 ```
 gcloud app deploy --version <VERSION>
@@ -52,6 +52,17 @@ The `<VERSION>` may be specified as `0-0-1` for version 0.0.1.
 After a few minutes, you should then be able to visit your project's URL (generally of the form `https://<PROJECT_ID>.appspot.com`) to see the API.
 
 If you wish to deploy a version without making it active to receive traffic, say for testing deployment or modifications, you may use the flag `--no-promote`.
+
+(5) Create the composite indexes on Datastore in order to run the more complex queries.
+
+> If new queries are created during development,
+> the emulator generates an `index.yaml` file in its WEB-INF folder.
+> You may copy it to update the one in the project's root folder
+> before running the following command.
+
+```
+gcloud datastore indexes create index.yaml
+```
 
 ---
 
@@ -170,7 +181,8 @@ In the debug window that opens, you may set your breakpoints under the *Source* 
 
 ### Documentation
 
-No API documentation has been generated yet. 😕
+Visit the root URL for a simple overview of the available paths.
+Ex. `https://<PROJECT_ID>.appspot.com/`
 
 <!-- TODO Open-API documentation, such as Open-API user interface. -->
 
