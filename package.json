@@ -1,6 +1,6 @@
 {
   "name": "notes-api-server-nodejs",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "API server for the Notes project",
   "main": "index.js",
   "scripts": {
